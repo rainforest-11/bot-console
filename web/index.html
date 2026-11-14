@@ -1,0 +1,2241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小鲸鱼 · QQ Bot 管理面板</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--line:#293040;
+  --txt:#e6edf3;--dim:#8b949e;--acc:#4a9eff;--ok:#3fb950;--warn:#d29922;--err:#f85149;
+}
+body{background:var(--bg);color:var(--txt);font:14px/1.6 "Microsoft YaHei","Segoe UI",sans-serif;display:flex;height:100vh;overflow:hidden}
+aside{width:190px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;flex:none}
+.logo{padding:18px 16px;font-weight:700;font-size:15px;border-bottom:1px solid var(--line)}
+.logo small{display:block;color:var(--dim);font-weight:400;font-size:11px;margin-top:2px}
+nav{padding:10px 8px;flex:1}
+nav a{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;color:var(--dim);text-decoration:none;cursor:pointer;margin-bottom:2px;font-size:13.5px}
+nav a:hover{background:var(--panel2);color:var(--txt)}
+nav a.on{background:#1f6feb22;color:var(--acc);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--err);flex:none}
+.dot.g{background:var(--ok)}
+main{flex:1;overflow:auto;padding:20px 24px}
+h2{font-size:17px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+h2 .sub{font-size:12px;color:var(--dim);font-weight:400}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat .k{color:var(--dim);font-size:12px;margin-bottom:4px}
+.stat .v{font-size:16px;font-weight:600;display:flex;align-items:center;gap:7px}
+button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-family:inherit}
+button:hover{border-color:var(--acc);color:var(--acc)}
+button.primary{background:var(--acc);border-color:var(--acc);color:#06121f;font-weight:600}
+button.primary:hover{filter:brightness(1.1);color:#06121f}
+button.danger:hover{border-color:var(--err);color:var(--err)}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,textarea,select{background:#0b0f16;border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:9px 11px;font:inherit;width:100%}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
+textarea{resize:vertical;line-height:1.7;font-size:13px}
+label.f{display:block;font-size:12px;color:var(--dim);margin:10px 0 5px}
+.alertbar{background:#7a2020;color:#fff;padding:10px 16px;font-size:13px;cursor:pointer;display:flex;gap:10px;align-items:center;border-bottom:1px solid #a33}
+.alertbar b{color:#ffd7d7}
+.dot.bad{background:#e35}
+.qrbox{background:#fff;padding:10px;border-radius:12px;display:inline-block}
+.toast{position:fixed;right:20px;bottom:20px;background:#1f6feb;color:#fff;padding:11px 16px;border-radius:9px;opacity:0;transform:translateY(10px);transition:.22s;z-index:99;max-width:420px;font-size:13px}
+.toast.show{opacity:1;transform:none}
+.toast.err{background:#8b1a1a}
+.toast.ok{background:#1a7f37}
+/* memes */
+.meme-wrap{display:grid;grid-template-columns:220px 1fr;gap:14px;height:calc(100vh - 150px)}
+.cats{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:auto;padding:6px}
+.cats .c{padding:8px 10px;border-radius:7px;cursor:pointer;display:flex;justify-content:space-between;font-size:13px;color:var(--dim)}
+.cats .c:hover{background:var(--panel2);color:var(--txt)}
+.cats .c.on{background:#1f6feb22;color:var(--acc);font-weight:600}
+.cats .c span{font-size:11px;opacity:.7}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;display:flex;flex-direction:column}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:10px}
+.thumb{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#0b0f16;border:1px solid var(--line);cursor:zoom-in}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .del{position:absolute;top:3px;right:3px;background:#000a;color:#fff;border:none;border-radius:6px;width:20px;height:20px;line-height:1;padding:0;font-size:13px;opacity:0;transition:.15s}
+.thumb:hover .del{opacity:1}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:16px;text-align:center;color:var(--dim);font-size:13px;margin-bottom:8px}
+.drop.hot{border-color:var(--acc);color:var(--acc);background:#1f6feb11}
+/* groups */
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:10px}
+.gcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+.gcard:hover{border-color:var(--acc)}
+.gcard.on{border-color:var(--acc);background:#1f6feb15}
+.gname{font-weight:600;margin-bottom:2px}
+.gmeta{color:var(--dim);font-size:12px}
+.grole{color:var(--acc);font-size:11px;margin-top:4px}
+.mtab{margin-top:8px;max-height:calc(100vh - 420px);overflow:auto}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--line)}
+.mrow:last-child{border:none}
+.mname{font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow button{padding:5px 9px;font-size:12px}
+.tag{background:#1f6feb33;color:var(--acc);border-radius:5px;padding:1px 6px;font-size:11px;margin-left:4px}
+/* tokens */
+.chart{display:flex;align-items:flex-end;gap:3px;height:120px;margin-top:12px;overflow-x:auto;padding-bottom:16px}
+.bar{flex:1;min-width:14px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:120px;position:relative}
+.bar i{display:block;width:100%;background:linear-gradient(180deg,#4a9eff,#1f6feb);border-radius:3px 3px 0 0;min-height:2px}
+.bar b{position:absolute;bottom:-15px;font-size:9px;color:var(--dim);white-space:nowrap;font-weight:400}
+.tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.tbl th,.tbl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+.tbl th{color:var(--dim);font-weight:400;font-size:12px}
+/* params */
+.prow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:9px 0;border-bottom:1px solid var(--line)}
+.prow:last-child{border:none}
+.plabel{font-size:13px}
+.pinput{width:280px;flex:none}
+/* logs */
+pre.log{background:#0b0f16;border:1px solid var(--line);border-radius:10px;padding:12px;font:12px/1.5 Consolas,monospace;color:#c9d1d9;white-space:pre-wrap;word-break:break-all;max-height:calc(100vh - 230px);overflow:auto}
+.feed-item{border-bottom:1px solid var(--line);padding:10px 0}
+.feed-item:last-child{border:none}
+.feed-item .meta{color:var(--dim);font-size:12px;margin-bottom:4px}
+.feed-item .body{white-space:pre-wrap;font-size:13px}
+.hint{color:var(--dim);font-size:12px;margin-top:6px}
+.hidden{display:none!important}
+img.qr{width:240px;height:240px;image-rendering:pixelated;background:#fff;border-radius:10px;padding:8px}
+</style>
+</head>
+<body>
+<aside>
+  <div class="logo">小鲸鱼 · QQ Bot<small>本地管理面板</small></div>
+  <nav id="nav">
+    <a data-t="home" class="on">🏠 概览</a>
+    <a data-t="meme">🖼 表情包</a>
+    <a data-t="persona">🧠 人格</a>
+    <a data-t="model">⚙️ 模型</a>
+    <a data-t="groups">👥 群管理</a>
+    <a data-t="proactive">💬 主动聊天</a>
+    <a data-t="memory">🧩 长期记忆</a>
+    <a data-t="extras">🧰 扩展插件</a>
+    <a data-t="voice">🔊 语音</a>
+    <a data-t="sing">🎤 唱歌</a>
+    <a data-t="tokens">📊 Token 用量</a>
+    <a data-t="params">🎛 参数调整</a>
+    <a data-t="qzone">🌌 QQ空间</a>
+    <a data-t="monitor">🩺 掉线监控</a>
+    <a data-t="log">📜 日志</a>
+  </nav>
+  <div style="padding:10px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--dim)">
+    <div class="row" style="gap:6px"><span class="dot" id="dotBot"></span><span id="sideState">检查中…</span></div>
+    <div class="row" style="gap:6px;margin-top:8px;justify-content:space-between">
+      <span id="sideUser" style="font-size:11px"></span>
+      <a href="#" onclick="doLogout();return false" style="font-size:11px;color:#8b98a5;text-decoration:none">退出登录</a>
+    </div>
+  </div>
+</aside>
+<div id="alertBar" class="alertbar" style="display:none" onclick="go('monitor')"></div>
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s,r=document)=>r.querySelector(s);
+const api = async (p,opt={})=>{
+  const r = await fetch(p, opt);
+  if(r.status===401){ location.replace('/login.html'); throw new Error('需要登录'); }
+  if(!r.ok && r.status!==200){ let t=''; try{t=(await r.json()).message||''}catch(e){} throw new Error(t||('HTTP '+r.status)); }
+  return r.json();
+};
+const post = (p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});
+async function doLogout(){
+  try{ await post('/api/auth/logout',{}); }catch(e){}
+  location.replace('/login.html');
+}
+(async()=>{ try{ const d=await api('/api/auth/whoami'); $('#sideUser').textContent='👤 '+(d.username||''); }catch(e){} })();
+let toastTimer;
+function toast(msg,type=''){
+  const t=$('#toast'); t.textContent=msg; t.className='toast show '+type;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className='toast '+type,3200);
+}
+const esc = s => (s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- 概览 ---------------- */
+function viewHome(){
+  $('#main').innerHTML = `
+  <h2>概览 <span class="sub" id="clock"></span></h2>
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="stat"><div class="k">AstrBot（<span id="pAstr">6185</span>）</div><div class="v"><span class="dot" id="d1"></span><span id="v1">—</span></div></div>
+    <div class="stat"><div class="k">SnowLuma（<span id="pSl">5099</span>）</div><div class="v"><span class="dot" id="d2"></span><span id="v2">—</span></div></div>
+    <div class="stat"><div class="k">QQ 登录</div><div class="v"><span class="dot" id="d3"></span><span id="v3">—</span></div></div>
+    <div class="stat"><div class="k">宿主程序 / 监听器</div><div class="v"><span class="dot" id="d4"></span><span id="v4">—</span></div></div>
+  </div>
+  <div class="card" id="gameCard">
+    <div class="row" style="justify-content:space-between">
+      <b>🎮 游戏模式</b>
+      <span class="hint" id="gmState">—</span>
+    </div>
+    <div class="hint" style="margin-top:8px">打开后立刻停掉所有吃显存/内存的东西：肥鱼语音、CosyVoice2、GPT-SoVITS、RVC 翻唱残留，并把语音与唱歌总开关关掉（改的是插件读的那份配置，下一条消息就生效）。开着时每 30 秒还会再扫一遍，谁偷偷起来就再按下去。</div>
+    <div class="row" style="margin-top:12px;align-items:center">
+      <button class="primary" id="gmBtn" onclick="gmToggle()">打开游戏模式</button>
+      <span class="hint" id="gmAlert" style="color:#ff9f43"></span>
+    </div>
+    <label class="hint" style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:10px">
+      <input type="checkbox" id="gmEmb" onchange="gmSaveEmb()" style="width:auto" checked>
+      <span>也停掉本地 Embedding（<span id="pEmb">8912</span>，约 700MB 内存）——停了以后长期记忆的向量检索会失效</span>
+    </label>
+    <div class="hint" id="gmDetail" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <div class="row">
+      <button class="primary" onclick="act('/api/bot/online','正在上线…')">▶ 上线</button>
+      <button class="danger" onclick="act('/api/bot/offline','正在下线…')">⏸ 下线</button>
+      <button onclick="act('/api/bot/restart','正在重启 AstrBot…',true)">🔄 重启 AstrBot</button>
+      <button onclick="act('/api/sl/restart','正在重启 SnowLuma…',true)">🛰 重启 SnowLuma</button>
+    </div>
+    <div class="hint">命令链路：QQ 客户端 → SnowLuma 注入 → OneBot WS(<span id="pOb">3001</span>) → AstrBot(<span id="pAstrWs">6199</span>)。下线会写 bot_off.flag 并结束 QQ/SnowLuma/AstrBot；重启 AstrBot 不掉 QQ 登录。</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>机器人 QQ 实例</b>
+      <span class="hint" id="qqListHint"></span>
+    </div>
+    <div class="hint" style="margin-top:8px">机器人 QQ 用独立的数据目录（config.json 里的 <code>qq_user_data_dir</code>）运行，和你自己的 QQ 互不干扰。SnowLuma 会注入这个实例，把它变成协议端。登录只能扫码。</div>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" onclick="slHook()">启动 QQ 并挂载</button>
+      <button onclick="act('/api/sl/hook','正在挂载…')">只挂载（QQ 已在运行）</button>
+      <button onclick="slClick()">替它点登录</button>
+      <button onclick="showQQ()">显示 QQ 窗口</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <b>扫码登录</b>
+      <div class="row" style="gap:8px">
+        <button onclick="loadQR(1)">重新截图</button>
+        <button onclick="relogin()">重新登录（重开 QQ）</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px;align-items:flex-start">
+      <img class="qr" id="qr" alt="登录二维码" src="/api/sl/qr.png?t=0">
+      <div class="hint" id="qrHint" style="max-width:340px">SnowLuma 没有二维码接口，所以这里显示的是从机器人 QQ 登录窗口截下来的图。已在线时不显示。“重新登录”会关掉机器人 QQ 重新拉起并截图（约 20 秒）。</div>
+    </div>
+  </div>`;
+  refreshStatus(); loadQR(0); qqLoadCfg(); gmRefresh();
+}
+async function qqLoadCfg(){
+  try{
+    const a=await api('/api/qq/accounts');
+    const list=a.list||[];
+    if(list.length){ $('#qqListHint').textContent='SnowLuma 已识别账号：'+list.map(x=>x.uin+(x.nickname?'('+x.nickname+')':'')).join('、'); }
+    else { $('#qqListHint').textContent='SnowLuma 没识别到已登录账号'; }
+  }catch(e){}
+}
+async function slClick(){
+  try{const r=await api('POST','/api/sl/click-login');toast(r.message||r.status);}catch(e){toast(''+e);}
+  setTimeout(refreshAll,2500);
+}
+async function slHook(){
+  toast('正在启动 QQ 并挂载，约 20 秒…');
+  try{
+    const r=await post('/api/sl/hook',{});
+    toast(r.message||'完成', r.status==='ok'?'ok':'err');
+    setTimeout(()=>{ loadQR(1); refreshStatus(); }, 1200);
+  }catch(e){ toast('失败：'+e.message,'err'); }
+}
+async function showQQ(){
+  toast('已请求显示 QQ 窗口');
+  try{ await post('/api/sl/show',{}); }catch(e){}
+}
+let statusTimer=null;
+async function refreshStatus(){
+  clearTimeout(statusTimer);
+  try{
+    const s = await api('/api/status');
+    const set=(i,ok,txt)=>{ $('#d'+i).className='dot'+(ok?' g':''); $('#v'+i).textContent=txt; };
+    set(1,s.astrbot_up,s.astrbot_up?'运行中':'未运行');
+    set(2,s.sl_up,s.sl_up?'运行中':'未运行');
+    set(3,s.qq.isLogin,(s.qq.isLogin?'在线 ':'')+(s.qq.nickname||s.qq.state||''));
+    set(4,s.dsh_running||s.watcher_pid,(s.dsh_running?'宿主开着':'宿主未开')+(s.watcher_pid?' · 监听中':(s.paused?' · 已手动下线':'')));
+    const on = s.qq.isLogin;
+    $('#sideState').textContent = on?'在线':'离线';
+    $('#dotBot').className='dot'+(on?' g':'');
+    $('#clock').textContent = s.time;
+    if(s.owner_qq) window.__ownerQq = s.owner_qq;
+    if(s.ports){const pp=(id,v)=>{const el=$('#'+id);if(el&&v)el.textContent=v;};
+      pp('pAstr',s.ports.astrbot);pp('pAstrWs',s.ports.astrbot_ws);
+      pp('pSl',s.ports.snowluma);pp('pOb',s.ports.onebot);pp('pEmb',s.ports.embed);}
+    gmRefresh(s.game_mode);
+    if(on){ const img=$('#qr'); if(img){ img.style.opacity=0; img.style.display='none'; } const h=$('#qrHint'); if(h) h.textContent='已在线（'+s.qq.nickname+'），无需扫码。'; }
+    else { const img=$('#qr'); if(img) img.style.display=''; }
+  }catch(e){}
+  statusTimer=setTimeout(refreshStatus,5000);
+}
+let gmBusy=false, gmOn=false;
+function gmPaint(st){
+  if(!st) return;
+  gmOn = !!st.enabled;
+  const btn=$('#gmBtn'), sv=$('#gmState'), det=$('#gmDetail');
+  if(btn){ btn.textContent = gmOn ? '关闭游戏模式' : '打开游戏模式'; btn.className = gmOn ? 'danger' : 'primary'; }
+  if(sv){ sv.textContent = gmOn ? '已开启 · 语音已禁用' : '未开启'; sv.style.color = gmOn ? '#ff9f43' : ''; }
+  const emb=$('#gmEmb'); if(emb){ emb.checked = st.stop_embedding!==false; }
+  if(det){
+    const bits=[];
+    bits.push('肥鱼语音 '+(st.fy_up?'⚡还开着':'已停'));
+    bits.push('CosyVoice2 '+(st.cv2_up?'⚡还开着':'已停'));
+    bits.push('GPT-SoVITS '+(st.gsv_up?'⚡还开着':'已停'));
+    bits.push('Embedding '+(st.embed_up?'还开着':'已停'));
+    if(st.rvc_running) bits.push('RVC 还在跑');
+    bits.push('语音总开关 '+(st.voice_master?'开':'关'));
+    bits.push('唱歌总开关 '+(st.sing_master?'开':'关'));
+    det.textContent = bits.join(' · ');
+    const al=$('#gmAlert');
+    if(al){
+      const hot=[];
+      if(st.fy_up) hot.push('肥鱼');
+      if(st.cv2_up) hot.push('CosyVoice2');
+      if(st.gsv_up) hot.push('GPT-SoVITS');
+      if(st.stop_embedding!==false && st.embed_up) hot.push('Embedding');
+      if(st.rvc_running) hot.push('RVC');
+      al.textContent = (gmOn && hot.length) ? ('⚠ 还在跑：'+hot.join('、')+'（守卫 30 秒内会关掉）') : '';
+    }
+  }
+}
+async function gmRefresh(on){
+  try{
+    const st = await api('/api/game');
+    gmPaint(st);
+  }catch(e){ if(typeof on==='boolean') gmOn=on; }
+}
+async function gmToggle(){
+  if(gmBusy) return; gmBusy=true;
+  const btn=$('#gmBtn'); const old = btn?btn.textContent:'';
+  if(btn){ btn.textContent='处理中…'; btn.disabled=true; }
+  try{
+    const r = await post('/api/game/toggle',{enabled:!gmOn});
+    toast(r.message||'完成', r.status==='ok'?'ok':'err');
+    gmPaint(r);
+  }catch(e){ toast('失败：'+e.message,'err'); }
+  finally{ gmBusy=false; if(btn){ btn.disabled=false; if(!$('#gmBtn').textContent||$('#gmBtn').textContent==='处理中…') btn.textContent=old; } }
+}
+async function gmSaveEmb(){
+  const v=$('#gmEmb')?$('#gmEmb').checked:true;
+  try{ const r=await post('/api/game/embedding',{stop_embedding:v}); toast(r.message||'已保存'); gmPaint(r); }
+  catch(e){ toast('失败：'+e.message,'err'); }
+}
+async function relogin(){
+  toast('正在重开机器人 QQ，约 20 秒…');
+  try{
+    const r=await post('/api/sl/relogin',{force:true});
+    toast(r.message||'完成', r.status==='ok'?'ok':'err');
+    setTimeout(()=>{ loadQR(1); refreshStatus(); }, 1500);
+  }catch(e){ toast('失败：'+e.message,'err'); }
+}
+async function loadQR(force){
+  const img=$('#qr'); if(!img) return;
+  img.onerror=()=>{ img.style.opacity=.25; $('#qrHint').textContent='当前拿不到二维码（已登录，或 QQ 还没起来）。'; };
+  img.onload=()=>{ img.style.opacity=1; };
+  img.src='/api/sl/qr.png?t='+Date.now()+(force?'&force=1':'');
+}
+async function act(url,msg,slow){
+  toast(msg);
+  try{ const r=await post(url); toast(r.message||'完成', r.status==='ok'?'ok':'err'); }
+  catch(e){ toast('失败：'+e.message,'err'); }
+  if(slow) setTimeout(refreshStatus,3000); else setTimeout(refreshStatus,800);
+}
+
+/* ---------------- 表情包 ---------------- */
+let memeData={categories:{},descriptions:{}}, curCat=null;
+async function viewMeme(){
+  $('#main').innerHTML = `
+  <h2>表情包 <span class="sub" id="memeCount"></span></h2>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>触发条件</b><button onclick="saveTrigger()">保存</button></div>
+    <div class="grid2" style="margin-top:10px">
+      <div><label class="f">触发概率（%）</label><input id="mt_prob" type="number" min="0" max="100" step="5">
+        <div class="hint">每次要发图时掷骰子，命中才真发；0=完全不发表情包，100=只要她想发就发</div></div>
+      <div><label class="f">每条消息最多几张</label><input id="mt_max" type="number" min="-1" max="10" step="1">
+        <div class="hint">-1=不限制（由模型自己决定），0=强制不发，1=最多一张</div></div>
+      <div><label class="f">生效范围</label>
+        <select id="mt_scope"><option value="only_chat_llm">只在普通聊天里</option><option value="chat_and_plugin_llm">聊天 + 插件调用也发</option></select></div>
+      <div><label class="f">语义检索候选数 top_k</label><input id="mt_topk" type="number" min="1" max="10" step="1"></div>
+    </div>
+    <label class="row" style="gap:8px;align-items:center;margin-top:12px;cursor:pointer"><input id="mt_llm" type="checkbox" style="width:auto">情感模型参与选图（让模型看语境挑分类）</label>
+    <label class="row" style="gap:8px;align-items:center;margin-top:6px;cursor:pointer"><input id="mt_sem" type="checkbox" style="width:auto">开启语义检索（给回复模型一个 search_memes 工具，按意思搜图）</label>
+    <label class="row" style="gap:8px;align-items:center;margin-top:6px;cursor:pointer"><input id="mt_loose" type="checkbox" style="width:auto">宽松匹配（没写 &&标记&& 时也试着按词匹配分类）</label>
+    <div class="row" style="gap:10px;align-items:center;margin-top:6px">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer"><input id="mt_mixed" type="checkbox" style="width:auto">图文同一条发</label>
+      <span class="hint">同条发送概率</span><input id="mt_mixp" type="number" min="1" max="100" step="5" style="width:90px">
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>自动收录（主人发来的图）</b><button onclick="saveAutoSave()">保存</button></div>
+    <label class="row" style="gap:8px;align-items:center;margin-top:8px;cursor:pointer"><input id="as_on" type="checkbox" style="width:auto">开启自动收录</label>
+    <div class="grid2" style="margin-top:10px">
+      <div><label class="f">只收这些 QQ 号发的图（逗号分隔）</label><input id="as_owners" placeholder="123456789">
+        <div class="hint">留空=谁发都收；通常只填主人自己</div></div>
+      <div><label class="f">归到哪</label>
+        <select id="as_mode"><option value="auto">让模型按语境挑分类</option><option value="fixed">固定分类</option></select>
+        <input id="as_fixed" placeholder="自存" style="margin-top:8px"></div>
+    </div>
+    <div class="hint" style="margin-top:10px">收进来之前，模型会读最近十几条对话，给这张图生成一句“适合什么语境用”的说明 + 关键词，按内容去重。</div>
+    <div id="as_list" style="margin-top:12px" class="hint">加载中…</div>
+  </div>
+  <div class="meme-wrap">
+    <div class="cats" id="cats"><div style="padding:10px;color:var(--dim)">加载中…</div></div>
+    <div class="pane">
+      <div class="drop" id="drop">把图片拖到这里上传到当前分类，或<span style="color:var(--acc);cursor:pointer" id="pick">点此选择文件</span>
+        <input type="file" id="file" accept="image/*" multiple class="hidden"></div>
+      <div class="row" style="justify-content:space-between;margin-bottom:6px">
+        <b id="curTitle">—</b>
+        <div class="row" style="gap:6px">
+          <button onclick="newCat()">＋ 新建分类</button>
+          <button class="danger" onclick="delCat()">删除该分类</button>
+        </div>
+      </div>
+      <div class="hint" id="curDesc"></div>
+      <div class="thumbs" id="thumbs"></div>
+    </div>
+  </div>`;
+  await loadMemes(); loadTrigger(); loadAutoSave();
+  const drop=$('#drop'), file=$('#file');
+  $('#pick').onclick=()=>file.click();
+  file.onchange=()=>{ uploadFiles([...file.files]); file.value=''; };
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hot')}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hot')}));
+  drop.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) uploadFiles([...e.dataTransfer.files]); });
+}
+async function loadAutoSave(){
+  try{
+    const d=await api('/api/meme-autosave');
+    const c=d.config||{};
+    $('#as_on').checked=!!c.enabled;
+    $('#as_owners').value=(c.owners||[]).join(',');
+    $('#as_mode').value=c.category_mode==='fixed'?'fixed':'auto';
+    $('#as_fixed').value=c.fixed_category||'';
+    const list=(d.recent||[]);
+    $('#as_list').innerHTML = list.length ? ('<b>最近收录</b>'+list.map(it=>`
+      <div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)">
+        <img src="/api/memes/img?category=${encodeURIComponent(it.category)}&filename=${encodeURIComponent(it.file)}" style="width:54px;height:54px;object-fit:cover;border-radius:8px">
+        <div style="flex:1;min-width:0">
+          <div><b>${esc(it.category)}</b> <span class="dim">${esc(it.file)}</span></div>
+          <div class="hint">${esc(it.use||'（没生成说明）')}</div>
+          <div class="hint">${esc((it.tags||[]).join(' / '))}</div>
+        </div>
+      </div>`).join('')) : '<div class="hint">还没有自动收录的图。主人在私聊里发张表情包试试。</div>';
+  }catch(e){ $('#as_list').textContent='读取失败：'+e.message; }
+}
+async function saveAutoSave(){
+  const body={
+    enabled:$('#as_on').checked,
+    owners:$('#as_owners').value,
+    category_mode:$('#as_mode').value,
+    fixed_category:$('#as_fixed').value
+  };
+  const r=await post('/api/meme-autosave',body);
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+  loadAutoSave();
+}
+async function loadTrigger(){
+  try{
+    const d=await api('/api/memes/trigger');
+    $('#mt_prob').value=d.probability;
+    $('#mt_max').value=d.max_per_msg;
+    $('#mt_scope').value=d.scope;
+    $('#mt_topk').value=d.semantic_top_k;
+    $('#mt_llm').checked=!!d.emotion_llm;
+    $('#mt_sem').checked=!!d.semantic;
+    $('#mt_loose').checked=!!d.loose;
+    $('#mt_mixed').checked=!!d.mixed;
+    $('#mt_mixp').value=d.mixed_probability;
+  }catch(e){}
+}
+async function saveTrigger(){
+  const body={
+    probability:parseInt($('#mt_prob').value||'100',10),
+    max_per_msg:parseInt($('#mt_max').value||'-1',10),
+    scope:$('#mt_scope').value,
+    semantic_top_k:parseInt($('#mt_topk').value||'5',10),
+    emotion_llm:$('#mt_llm').checked,
+    semantic:$('#mt_sem').checked,
+    loose:$('#mt_loose').checked,
+    mixed:$('#mt_mixed').checked,
+    mixed_probability:parseInt($('#mt_mixp').value||'50',10)
+  };
+  const r=await post('/api/memes/trigger',body);
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+}
+async function loadMemes(){
+  const d = await api('/api/memes');
+  memeData=d;
+  $('#memeCount').textContent = `共 ${d.total} 张 · ${Object.keys(d.categories).length} 个分类`;
+  const cats=$('#cats'); if(!cats) return;
+  const names=Object.keys(d.categories).sort((a,b)=>d.categories[b].length-d.categories[a].length);
+  if(!curCat||!names.includes(curCat)) curCat=names[0]||null;
+  cats.innerHTML=names.map(n=>`<div class="c ${n===curCat?'on':''}" data-c="${esc(n)}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n)}</span><span>${d.categories[n].length}</span></div>`).join('')||'<div style="padding:10px;color:var(--dim)">没有分类</div>';
+  cats.querySelectorAll('.c').forEach(el=>el.onclick=()=>{curCat=el.dataset.c;loadMemes()});
+  renderThumbs();
+}
+function renderThumbs(){
+  $('#curTitle').textContent = curCat||'—';
+  $('#curDesc').textContent = (memeData.descriptions[curCat]||'（无描述）');
+  const files = (memeData.categories[curCat]||[]);
+  $('#thumbs').innerHTML = files.map(f=>`<div class="thumb"><img loading="lazy" src="/api/memes/img?category=${encodeURIComponent(curCat)}&filename=${encodeURIComponent(f)}"><button class="del" title="删除" onclick="delImg('${esc(f)}')">✕</button></div>`).join('')||'<div class="hint">这个分类还没有图，拖图片进来即可。</div>';
+  $('#curDesc').onclick=()=>editDesc();
+  $('#curDesc').title='点击修改描述';
+}
+async function uploadFiles(files){
+  if(!curCat) return toast('先选一个分类','err');
+  const imgs = files.filter(f=>/^image\//.test(f.type));
+  if(!imgs.length) return toast('不是图片文件','err');
+  toast(`上传 ${imgs.length} 张到「${curCat}」…`);
+  let ok=0;
+  for(const f of imgs){
+    const fd=new FormData(); fd.append('file',f);
+    try{
+      const r=await fetch('/api/memes/upload?category='+encodeURIComponent(curCat),{method:'POST',body:fd});
+      const j=await r.json();
+      if(r.ok && (j.status==='ok'||j.message?.includes('成功'))) ok++;
+    }catch(e){}
+  }
+  toast(`已上传 ${ok}/${imgs.length} 张`, ok?'ok':'err');
+  loadMemes();
+}
+async function delImg(f){
+  if(!confirm('删除这张表情？')) return;
+  await post('/api/memes/delete',{category:curCat,filename:f});
+  toast('已删除','ok'); loadMemes();
+}
+async function newCat(){
+  const name=prompt('新分类名（英文/拼音更稳，如 happy2）'); if(!name) return;
+  const desc=prompt('分类描述（会告诉模型什么时候用这个分类）','')||'';
+  const r=await post('/api/memes/category',{category:name,description:desc});
+  toast(r.message||'已创建', r.status==='ok'?'ok':'err');
+  curCat=name; loadMemes();
+}
+async function editDesc(){
+  if(!curCat) return;
+  const d=prompt('「'+curCat+'」的分类描述',memeData.descriptions[curCat]||'');
+  if(d===null) return;
+  const r=await post('/api/memes/category',{category:curCat,description:d});
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err'); loadMemes();
+}
+async function delCat(){
+  if(!curCat) return;
+  if(!confirm(`删除分类「${curCat}」及其所有图片？此操作不可撤销。`)) return;
+  await post('/api/memes/category/delete',{category:curCat});
+  toast('已删除分类','ok'); curCat=null; loadMemes();
+}
+
+/* ---------------- 人格 ---------------- */
+async function viewPersona(){
+  $('#main').innerHTML=`<h2>人格 <span class="sub">system_prompt（保存后立即生效）</span></h2>
+  <div class="card">
+    <textarea id="pText" style="min-height:calc(100vh - 300px)">加载中…</textarea>
+    <div class="row" style="margin-top:12px;justify-content:space-between">
+      <span class="hint" id="pCount"></span>
+      <div class="row">
+        <button onclick="restorePersona()">↩ 回滚上一版</button>
+        <button class="primary" onclick="savePersona()">保存</button>
+      </div>
+    </div>
+  </div>`;
+  const d=await api('/api/persona');
+  $('#pText').value=d.system_prompt||'';
+  const upd=()=>$('#pCount').textContent=`${$('#pText').value.length} 字`;
+  $('#pText').oninput=upd; upd();
+}
+async function savePersona(){
+  const text=$('#pText').value.trim(); if(!text) return toast('内容为空','err');
+  toast('保存中…');
+  const r=await post('/api/persona',{system_prompt:text});
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+}
+async function restorePersona(){
+  if(!confirm('用上一版备份覆盖当前人格？')) return;
+  const r=await post('/api/persona/restore');
+  if(r.system_prompt!==undefined){ $('#pText').value=r.system_prompt; }
+  toast(r.message||'已回滚', r.status==='ok'?'ok':'err');
+}
+
+/* ---------------- 模型 ---------------- */
+async function viewModel(){
+  $('#main').innerHTML=`<h2>模型 <span class="sub">当前生效的对话模型</span></h2><div id="provs">加载中…</div>`;
+  const d=await api('/api/providers');
+  const items=d.items||[];
+  $('#provs').innerHTML=items.map(p=>`
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><b>${esc(p.id)}</b> <span class="hint">${esc(p.type||'')}</span></div>
+        <button class="${p.enable?'primary':''}" onclick="setActive('${esc(p.id)}')">${p.enable?'✓ 使用中':'设为当前'}</button>
+      </div>
+      <label class="f">模型名 model</label><input value="${esc(p.model||'')}" data-id="${esc(p.id)}" data-k="model">
+      <label class="f">接口地址 api_base</label><input value="${esc(p.api_base||'')}" data-id="${esc(p.id)}" data-k="api_base">
+      <label class="f">API Key（留空=不改）</label><input placeholder="${esc(p.key_masked||'')}" data-id="${esc(p.id)}" data-k="key">
+      <label class="f">思考强度（推理力度，越强越慢越费）</label>
+      <select data-id="${esc(p.id)}" data-k="thinking" onchange="saveThink('${esc(p.id)}',this.value)">
+        ${thinkOpts(p.thinking)}
+      </select>
+      <div class="hint" style="margin-top:6px">${thinkHint(p.thinking)}</div>
+      <div class="row" style="margin-top:10px"><button onclick="saveProv('${esc(p.id)}')">保存这个模型</button></div>
+    </div>`).join('')||'<div class="hint">没有配置模型</div>';
+}
+const THINK_LABELS={off:'关闭思考（最快最省）',low:'低',medium:'中',high:'高',max:'最高（最慢最贵）','':'跟随模型默认'};
+function thinkOpts(cur){
+  const order=['','off','low','medium','high','max'];
+  return order.map(v=>`<option value="${v}" ${String(cur||'')===v?'selected':''}>${THINK_LABELS[v]}</option>`).join('');
+}
+function thinkHint(cur){
+  const m={
+    off:'不发思考请求体，响应最快、token 最省，适合日常闲聊',
+    low:'想一两步就回答，速度和质量的折中',
+    medium:'中等推理，多数场景够用',
+    high:'深想，回答更稳但更慢更贵',
+    max:'最大推理预算，只在难题上开',
+    '':'不写任何参数，沿用服务端/模型自己的默认'
+  };
+  return m[String(cur||'')]||'';
+}
+async function saveThink(id,level){
+  const r=await post('/api/providers/thinking',{id,level});
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+  if(r.status==='ok') viewModel();
+}
+async function setActive(id){ const r=await post('/api/providers/active',{id}); toast(r.message||'已切换', r.status==='ok'?'ok':'err'); viewModel(); }
+async function saveProv(id){
+  const g=k=>document.querySelector(`input[data-id="${id}"][data-k="${k}"]`).value.trim();
+  const r=await post('/api/providers/save',{id,model:g('model'),api_base:g('api_base'),key:g('key')});
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err'); viewModel();
+}
+
+/* ---------------- QQ 空间 ---------------- */
+async function viewQzone(){
+  $('#main').innerHTML=`<h2>QQ 空间</h2>
+  <div class="card">
+    <div id="qstat" class="hint">读取中…</div>
+  </div>
+  <div class="card">
+    <label class="f">发一条说说</label>
+    <textarea id="qtext" style="min-height:90px" placeholder="说点什么…"></textarea>
+    <div class="row" style="margin-top:10px"><button class="primary" onclick="qPublish()">发布</button></div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>自动任务</b><button onclick="qSaveCfg()">保存设置</button></div>
+    <div class="grid2">
+      <div><label class="f">自动回复评论 cron</label><input id="qc_reply" placeholder="*/30 * * * *"></div>
+      <div><label class="f">自动评论他人 cron</label><input id="qc_comment" placeholder="留空=关闭"></div>
+      <div><label class="f">单轮最多回复条数</label><input id="qc_max" type="number" min="1" max="20"></div>
+    </div>
+    <div style="border-top:1px solid var(--line);margin:14px 0;padding-top:12px">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+        <input id="qc_rand_on" type="checkbox" style="width:auto">
+        <b>随机发说说（让她想发的时候自己发）</b>
+      </label>
+      <div class="hint" style="margin:6px 0 10px">开启后忽略 cron，改为在区间内随机挑时间；到点再按概率决定这次发不发。</div>
+      <div class="grid2">
+        <div><label class="f">随机间隔下限（分钟）</label><input id="qc_rand_min" type="number" min="1" step="1"></div>
+        <div><label class="f">随机间隔上限（分钟）</label><input id="qc_rand_max" type="number" min="1" step="1"></div>
+        <div><label class="f">到点真发的概率（0~1）</label><input id="qc_rand_prob" type="number" min="0" max="1" step="0.05"></div>
+        <div><label class="f">固定 cron（随机模式关闭时用）</label><input id="qc_publish" placeholder="留空=关闭"></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--line);margin:14px 0;padding-top:12px">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+        <input id="qc_img_on" type="checkbox" style="width:auto">
+        <b>自动配图（表情包/自拍）</b>
+      </label>
+      <div class="hint" style="margin:6px 0 10px">按说说正文里的情绪词，从图库对应分类里挑一张一起发。</div>
+      <div class="grid2">
+        <div><label class="f">配图概率（0~1）</label><input id="qc_img_prob" type="number" min="0" max="1" step="0.05"></div>
+        <div><label class="f">优先分类（留空=全库随机）</label><input id="qc_img_cats" placeholder="happy,daily,food"></div>
+      </div>
+    </div>
+    <div class="hint">cron 为 5 段式：分 时 日 月 周。改动需重启 AstrBot 生效（概览页有按钮）。</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>最近动态</b><button onclick="qFeed()">刷新</button></div>
+    <div id="qfeed" class="hint" style="margin-top:10px">点刷新加载</div>
+  </div>`;
+  try{
+    const s=await api('/api/qzone/status');
+    $('#qstat').innerHTML = `<pre style="white-space:pre-wrap;font:12px/1.6 Consolas,monospace;color:var(--dim)">${esc(JSON.stringify(s.data??s,null,1)).slice(0,1500)}</pre>`;
+  }catch(e){ $('#qstat').textContent='读取失败：'+e.message; }
+  const c=await api('/api/qzone/config');
+  const t=c.trigger||{};
+  $('#qc_reply').value=t.reply_cron||''; $('#qc_comment').value=t.comment_cron||'';
+  $('#qc_publish').value=t.publish_cron||''; $('#qc_max').value=t.reply_max||5;
+  $('#qc_rand_on').checked=!!t.publish_random_enable;
+  $('#qc_rand_min').value=t.publish_random_min_minutes??120;
+  $('#qc_rand_max').value=t.publish_random_max_minutes??360;
+  $('#qc_rand_prob').value=t.publish_random_probability??0.8;
+  $('#qc_img_on').checked=t.publish_with_image!==false;
+  $('#qc_img_prob').value=t.publish_image_probability??0.85;
+  $('#qc_img_cats').value=(t.publish_image_categories||[]).join(',');
+}
+async function qPublish(){
+  const text=$('#qtext').value.trim(); if(!text) return toast('内容为空','err');
+  toast('发布中…');
+  const r=await post('/api/qzone/publish',{text});
+  toast(r.message||(r.status==='ok'?'已发布':'失败'), r.status==='ok'?'ok':'err');
+  if(r.status==='ok') $('#qtext').value='';
+}
+async function qSaveCfg(){
+  const patch={
+    reply_cron:$('#qc_reply').value.trim(),
+    comment_cron:$('#qc_comment').value.trim(),
+    publish_cron:$('#qc_publish').value.trim(),
+    reply_max:parseInt($('#qc_max').value||'5',10),
+    publish_random_enable:$('#qc_rand_on').checked,
+    publish_random_min_minutes:parseInt($('#qc_rand_min').value||'120',10),
+    publish_random_max_minutes:parseInt($('#qc_rand_max').value||'360',10),
+    publish_random_probability:parseFloat($('#qc_rand_prob').value||'0.8'),
+    publish_with_image:$('#qc_img_on').checked,
+    publish_image_probability:parseFloat($('#qc_img_prob').value||'0.85'),
+    publish_image_categories:$('#qc_img_cats').value.split(',').map(s=>s.trim()).filter(Boolean)
+  };
+  const r=await post('/api/qzone/config',patch);
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+}
+async function qFeed(){
+  const box=$('#qfeed'); box.textContent='加载中…';
+  try{
+    const d=await api('/api/qzone/feed?page=1');
+    const list=(d.data?.feeds)||d.data?.list||[];
+    if(!list.length){ box.innerHTML='<span class="hint">没有取到动态：'+esc(JSON.stringify(d).slice(0,300))+'</span>'; return; }
+    box.innerHTML=list.map(f=>`<div class="feed-item"><div class="meta">${esc(f.nickname||f.name||'')} · ${esc(f.createTime||f.time||'')}</div><div class="body">${esc((f.content||'').slice(0,300))}</div></div>`).join('');
+  }catch(e){ box.textContent='读取失败：'+e.message; }
+}
+
+/* ---------------- 群管理 ---------------- */
+let gidCur=null, gMembers=[];
+async function viewGroups(){
+  $('#main').innerHTML=`<h2>群管理 <span class="sub">通过 SnowLuma 的 OneBot 接口直连</span></h2>
+  <div class="card"><div class="row" style="justify-content:space-between"><b>机器人所在的群</b><button onclick="loadGroups()">刷新</button></div><div id="glist" class="hint" style="margin-top:10px">加载中…</div></div>
+  <div id="gdetail"></div>`;
+  await loadGroupSettings();
+  loadGroups();
+}
+let gSettings={}, gDefaults={};
+async function loadGroupSettings(){
+  try{ const d=await api('/api/groups/settings'); gSettings=d.settings||{}; gDefaults=d.defaults||{}; }catch(e){}
+}
+function gBadge(gid){
+  const c=gSettings[String(gid)]||{}; const bits=[];
+  if(c.reply_prob!==undefined) bits.push('概率 '+c.reply_prob);
+  if(c.context_messages!==undefined) bits.push('上下文 '+c.context_messages);
+  if(c.per_minute) bits.push('限 '+c.per_minute+'/分');
+  return bits.length?`<div class="grole">面板参数：${bits.join(' · ')}</div>`:'';
+}
+async function loadGroups(){
+  const box=$('#glist'); box.textContent='加载中…';
+  try{
+    const d=await api('/api/groups');
+    const gs=d.groups||[];
+    if(!gs.length){ box.textContent='没有取到群：'+(d.message||''); return; }
+    box.innerHTML=`<div class="ggrid">`+gs.map(g=>`
+      <div class="gcard ${gidCur===g.group_id?'on':''}" onclick="pickGroup(${g.group_id})">
+        <div class="gname">${esc(g.group_name)}</div>
+        <div class="gmeta">${g.group_id} · ${g.member_count}/${g.max_member_count} 人 ${g.all_shut?'· 全员禁言中':''}</div>
+        <div class="grole">${g.bot_role==='owner'?'群主':g.bot_role==='admin'?'管理员':'普通成员'}</div>
+        ${gBadge(g.group_id)}
+      </div>`).join('')+`</div>`;
+    if(gidCur) pickGroup(gidCur,1);
+  }catch(e){ box.textContent='读取失败：'+e.message; }
+}
+async function pickGroup(gid,keep){
+  gidCur=gid;
+  document.querySelectorAll('.gcard').forEach(c=>c.classList.toggle('on', c.textContent.includes(String(gid))));
+  $('#gdetail').innerHTML=`<div class="card"><div class="hint">加载群 ${gid} 的成员…</div></div>`;
+  const d=await api('/api/groups/members?gid='+gid);
+  gMembers=d.members||[];
+  const adm=gMembers.filter(m=>m.role!=='member').length;
+  const gc=gSettings[String(gid)]||{};
+  const dv=(k)=>gDefaults[k];
+  $('#gdetail').innerHTML=`
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>群 ${gid} 的机器人参数</b><span class="hint">留空 = 用全局默认</span></div>
+    <div class="prow"><div class="plabel">接话概率<br><span class="hint">0~1，越大越爱插话；全局默认 ${dv('reply_prob')}</span></div><input class="pinput" id="pgProb" type="number" step="0.05" min="0" max="1" value="${gc.reply_prob??''}" placeholder="${dv('reply_prob')}"></div>
+    <div class="prow"><div class="plabel">上下文条数<br><span class="hint">每轮带给 AI 的历史消息条数；全局默认 ${dv('context_messages')}</span></div><input class="pinput" id="pgCtx" type="number" min="0" value="${gc.context_messages??''}" placeholder="${dv('context_messages')}"></div>
+    <div class="prow"><div class="plabel">每分钟限量<br><span class="hint">这个群每分钟最多接几次话，0 或留空 = 不限</span></div><input class="pinput" id="pgLimit" type="number" min="0" value="${gc.per_minute??''}" placeholder="0"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" onclick="saveGroupSettings()">保存这个群的参数</button>
+      <button onclick="clearGroupSettings()">恢复全局默认</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>群 ${gid}</b><span class="hint">${gMembers.length} 人 · ${adm} 个管理</span></div>
+    <label class="f">发群消息（@ 可填 QQ 号，留空则不发 @）</label>
+    <div class="row"><input id="gAt" placeholder="要 @ 的 QQ（可不填）" style="width:200px"><input id="gMsg" placeholder="要说的话"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" onclick="gSend()">发送消息</button>
+      <button onclick="gNotice()">发群公告（用上面的文字）</button>
+      <button class="danger" onclick="gBanAll(1)">全员禁言</button>
+      <button onclick="gBanAll(0)">解除全员禁言</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>成员</b><span class="hint">禁言时长：10 分钟 / 1 小时 / 解除</span></div>
+    <div class="mtab" id="mtab">${renderMembers()}</div>
+  </div>`;
+}
+function renderMembers(){
+  return gMembers.map(m=>`
+    <div class="mrow">
+      <div class="mname">${esc(m.card||m.nickname||m.user_id)} <span class="hint">${m.user_id}</span> ${m.role==='owner'?'<span class="tag">群主</span>':m.role==='admin'?'<span class="tag">管理</span>':''}</div>
+      <div class="row" style="gap:6px">
+        <button onclick="gBan(${m.user_id},600)">禁言10分</button>
+        <button onclick="gBan(${m.user_id},3600)">1小时</button>
+        <button onclick="gBan(${m.user_id},0)">解除</button>
+        <button class="danger" onclick="gKick(${m.user_id})">踢出</button>
+      </div>
+    </div>`).join('')||'<div class="hint">没有成员</div>';
+}
+async function saveGroupSettings(){
+  const body={group_id:gidCur};
+  const p=$('#pgProb').value.trim(), c=$('#pgCtx').value.trim(), l=$('#pgLimit').value.trim();
+  if(p!=='') body.reply_prob=parseFloat(p);
+  if(c!=='') body.context_messages=parseInt(c,10);
+  if(l!=='') body.per_minute=parseInt(l,10);
+  const r=await post('/api/groups/settings',body);
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+  if(r.status==='ok'){ gSettings=r.settings||gSettings; loadGroups(); }
+}
+async function clearGroupSettings(){
+  if(!confirm('把这个群的参数改回全局默认？')) return;
+  const r=await post('/api/groups/settings',{group_id:gidCur,reply_prob:'',context_messages:'',per_minute:''});
+  toast(r.message||'已恢复', r.status==='ok'?'ok':'err');
+  if(r.status==='ok'){ gSettings=r.settings||{}; pickGroup(gidCur,1); loadGroups(); }
+}
+async function gSend(){
+  const text=$('#gMsg').value.trim(); if(!text) return toast('内容为空','err');
+  const at=$('#gAt').value.trim();
+  const r=await post('/api/groups/send',{gid:gidCur,text,at:at||null});
+  toast(r.message||'已发送', r.status==='ok'?'ok':'err'); if(r.status==='ok') $('#gMsg').value='';
+}
+async function gNotice(){
+  const text=$('#gMsg').value.trim(); if(!text) return toast('先在上面的输入框写公告内容','err');
+  if(!confirm('把这段文字发成群公告？')) return;
+  const r=await post('/api/groups/notice',{gid:gidCur,text});
+  toast(r.message||'已发布', r.status==='ok'?'ok':'err');
+}
+async function gBanAll(on){
+  if(!confirm(on?'对全群开启禁言？':'解除全群禁言？')) return;
+  const r=await post('/api/groups/ban',{gid:gidCur,duration:on?600:0});
+  toast(r.message||'完成', r.status==='ok'?'ok':'err'); loadGroups();
+}
+async function gBan(uid,dur){
+  const r=await post('/api/groups/ban',{gid:gidCur,user:uid,duration:dur});
+  toast(r.message||'完成', r.status==='ok'?'ok':'err');
+}
+async function gKick(uid){
+  if(!confirm('把 '+uid+' 踢出这个群？')) return;
+  const r=await post('/api/groups/kick',{gid:gidCur,user:uid});
+  toast(r.message||'已踢出', r.status==='ok'?'ok':'err');
+  pickGroup(gidCur);
+}
+
+/* ---------------- Token 用量 ---------------- */
+let tkDays=1;
+async function viewTokens(){
+  $('#main').innerHTML=`<h2>Token 用量 <span class="sub">来自 AstrBot 的调用统计</span></h2>
+  <div class="row" style="margin-bottom:12px">
+    <button id="tk1" class="primary" onclick="tkSet(1)">今天</button>
+    <button id="tk3" onclick="tkSet(3)">近 3 天</button>
+    <button id="tk7" onclick="tkSet(7)">近 7 天</button>
+    <button onclick="loadTokens()">刷新</button>
+  </div>
+  <div id="tkbody" class="hint">加载中…</div>`;
+  loadTokens();
+}
+function tkSet(d){ tkDays=d; [1,3,7].forEach(n=>$('#tk'+n).className=n===d?'primary':''); loadTokens(); }
+const fmtNum=n=>{ n=Number(n||0); if(n>=1e8)return (n/1e8).toFixed(2)+' 亿'; if(n>=1e4)return (n/1e4).toFixed(1)+' 万'; return n.toLocaleString(); };
+async function loadTokens(){
+  const box=$('#tkbody'); box.textContent='加载中…';
+  try{
+    const [d, det] = await Promise.all([
+      api('/api/tokens?days='+tkDays),
+      api('/api/tokens/detail?days='+tkDays).catch(()=>null)
+    ]);
+    const series=d.series||[];
+    const max=Math.max(1,...series.map(s=>s[1]));
+    const bars=series.map(([ts,v])=>{
+      const h=Math.round(v/max*90);
+      const dt=new Date(ts); const hh=(dt.getMonth()+1)+'/'+dt.getDate()+' '+String(dt.getHours()).padStart(2,'0');
+      return `<div class="bar" title="${hh}点 ${fmtNum(v)}"><i style="height:${Math.max(2,h)}px"></i><b>${hh}</b></div>`;
+    }).join('');
+    const provs=(d.providers||[]).map(p=>`<tr><td>${esc(p.provider_id||p.provider||p.name||'')}</td><td>${fmtNum(p.tokens??p.total_tokens)}</td><td>${p.calls??p.count??'—'}</td></tr>`).join('');
+    box.className=''; box.innerHTML=`
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="stat"><div class="k">总 Token</div><div class="v">${fmtNum(d.total_tokens)}</div></div>
+      <div class="stat"><div class="k">调用次数</div><div class="v">${fmtNum(d.calls)}</div></div>
+      <div class="stat"><div class="k">平均耗时</div><div class="v">${d.avg_ms? (d.avg_ms/1000).toFixed(1)+' 秒':'—'}</div></div>
+      <div class="stat"><div class="k">成功率</div><div class="v">${d.success_rate!=null? (d.success_rate*100).toFixed(0)+'%':'—'}</div></div>
+      <div class="stat"><div class="k">平均 TPM</div><div class="v">${fmtNum(d.avg_tpm)}</div></div>
+      <div class="stat"><div class="k">累计消息数</div><div class="v">${fmtNum(d.message_count)}</div></div>
+    </div>
+    ${tkDetailCard(det)}
+    <div class="card"><b>按小时趋势（${tkDays} 天）</b><div class="chart">${bars||'<span class="hint">没有数据</span>'}</div></div>
+    <div class="card"><b>按模型拆分</b>
+      <table class="tbl"><thead><tr><th>模型</th><th>Token</th><th>次数</th></tr></thead><tbody>${provs||'<tr><td colspan="3" class="hint">没有数据</td></tr>'}</tbody></table>
+    </div>`;
+  }catch(e){ box.textContent='读取失败：'+e.message; }
+}
+
+function tkPct(x){ return x==null? '—' : (x*100).toFixed(1)+'%'; }
+function tkDetailCard(det){
+  if(!det || det.status!=='ok'){
+    return `<div class="card"><b>输入命中 / 未命中 / 输出</b><div class="hint">明细读取失败${det&&det.message?('：'+det.message):''}</div></div>`;
+  }
+  const rows=(det.by_day||[]).slice().reverse().map(r=>`<tr><td>${r.date}</td><td>${fmtNum(r.hit)}</td><td>${fmtNum(r.miss)}</td><td>${fmtNum(r.output)}</td><td>${fmtNum(r.calls)}</td></tr>`).join('');
+  const umos=(det.by_umo||[]).map(r=>{
+    let name=r.umo||'';
+    const p=name.split(':'); if(p.length>=3){ name=(p[0]==='napcat'?(p[1]==='FriendMessage'?'私聊 ':'群 '):'')+p.slice(2).join(':'); }
+    return `<tr><td title="${esc(r.umo||'')}">${esc(name)}</td><td>${fmtNum(r.hit)}</td><td>${fmtNum(r.miss)}</td><td>${fmtNum(r.output)}</td></tr>`;
+  }).join('');
+  return `<div class="card"><b>Token 拆分（命中 / 未命中 / 输出）</b>
+    <div class="grid2" style="margin:10px 0 6px">
+      <div class="stat"><div class="k">输入命中（缓存）</div><div class="v">${fmtNum(det.hit)}</div></div>
+      <div class="stat"><div class="k">输入未命中</div><div class="v">${fmtNum(det.miss)}</div></div>
+      <div class="stat"><div class="k">输出</div><div class="v">${fmtNum(det.output)}</div></div>
+      <div class="stat"><div class="k">输入合计 / 命中率</div><div class="v">${fmtNum(det.input_total)} · ${tkPct(det.hit_rate)}</div></div>
+    </div>
+    <table class="tbl"><thead><tr><th>日期</th><th>命中</th><th>未命中</th><th>输出</th><th>调用</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="hint">没有数据</td></tr>'}</tbody></table>
+    <div style="margin-top:10px"><b>按会话Top</b>
+      <table class="tbl"><thead><tr><th>会话</th><th>命中</th><th>未命中</th><th>输出</th></tr></thead><tbody>${umos||'<tr><td colspan="4" class="hint">没有数据</td></tr>'}</tbody></table>
+    </div>
+  </div>`;
+}
+/* ---------------- 参数调整 ---------------- */
+let pItems=[], pCfg={};
+async function viewParams(){
+  $('#main').innerHTML=`<h2>参数调整 <span class="sub">保存后 AstrBot 热更新，多数立即生效</span></h2>
+  <div class="card"><div class="row" style="justify-content:space-between"><b>对话与回复</b><button class="primary" onclick="saveParams()">保存</button></div><div id="pform" style="margin-top:6px" class="hint">加载中…</div></div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>插件参数</b>
+      <div class="row"><select id="pPlug" style="width:280px" onchange="loadPluginCfg()"></select><button onclick="savePluginCfg()">保存插件参数</button></div>
+    </div>
+    <div id="pform2" style="margin-top:8px" class="hint">加载中…</div>
+  </div>`;
+  const d=await api('/api/params');
+  pItems=d.items||[]; pCfg={};
+  pItems.forEach(it=>pCfg[it.path]=it.value);
+  $('#pform').className='';
+  $('#pform').innerHTML=pItems.map(it=>{
+    const id='p_'+it.path.replace(/\./g,'_');
+    let input='';
+    if(it.type==='bool'){
+      input=`<select id="${id}" data-path="${it.path}"><option value="1" ${it.value?'selected':''}>开启</option><option value="0" ${it.value?'':'selected'}>关闭</option></select>`;
+    }else if(it.type==='choice'){
+      input=`<select id="${id}" data-path="${it.path}">${(it.choices||[]).map(c=>`<option ${it.value===c?'selected':''}>${c}</option>`).join('')}</select>`;
+    }else if(it.type==='int'){
+      input=`<input id="${id}" data-path="${it.path}" type="number" value="${it.value??''}">`;
+    }else if(it.type==='list'){
+      input=`<input id="${id}" data-path="${it.path}" value="${esc((it.value||[]).join(', '))}">`;
+    }else{
+      input=`<input id="${id}" data-path="${it.path}" value="${esc(it.value??'')}">`;
+    }
+    return `<div class="prow"><div><div class="plabel">${esc(it.label)}</div><div class="hint">${esc(it.hint||it.path)}</div></div><div class="pinput">${input}</div></div>`;
+  }).join('');
+  const ps=$('#pPlug'); ps.innerHTML=(d.plugins||[]).map(n=>`<option>${n}</option>`).join('');
+  loadPluginCfg();
+}
+async function saveParams(){
+  const values={};
+  document.querySelectorAll('#pform [data-path]').forEach(el=>{
+    const p=el.dataset.path; const it=pItems.find(x=>x.path===p)||{};
+    let v=el.value;
+    if(it.type==='bool') v = v==='1';
+    else if(it.type==='int') v = parseInt(v||'0',10);
+    else if(it.type==='list') v = v.split(',').map(s=>s.trim()).filter(Boolean);
+    values[p]=v;
+  });
+  toast('保存中…');
+  const r=await post('/api/params',{values});
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+}
+function flatten(obj,prefix,out,depth){
+  if(depth>4||out.length>80) return out;
+  Object.keys(obj||{}).forEach(k=>{
+    const v=obj[k], p=prefix?prefix+'.'+k:k;
+    if(v&&typeof v==='object'&&!Array.isArray(v)) flatten(v,p,out,depth+1);
+    else if(Array.isArray(v)) out.push({path:p,value:v.join(', '),type:'list'});
+    else out.push({path:p,value:v,type:typeof v});
+  });
+  return out;
+}
+async function loadPluginCfg(){
+  const name=$('#pPlug').value; const box=$('#pform2');
+  if(!name) return;
+  box.textContent='加载中…'; box.className='hint';
+  const d=await api('/api/plugin-config?name='+encodeURIComponent(name));
+  if(d.status!=='ok'){ box.textContent=d.message||'读取失败'; return; }
+  const flat=flatten(d.config||{},'',[],0);
+  box.className='';
+  box.innerHTML=flat.map(f=>{
+    const id='q_'+f.path.replace(/[^a-zA-Z0-9]/g,'_');
+    let input;
+    if(typeof f.value==='boolean')
+      input=`<select id="${id}" data-path="${f.path}" data-t="bool"><option value="1" ${f.value?'selected':''}>开启</option><option value="0" ${f.value?'':'selected'}>关闭</option></select>`;
+    else if(typeof f.value==='number')
+      input=`<input id="${id}" data-path="${f.path}" data-t="num" type="number" step="any" value="${f.value}">`;
+    else
+      input=`<input id="${id}" data-path="${f.path}" data-t="${f.type==='list'?'list':'str'}" value="${esc(f.value??'')}">`;
+    return `<div class="prow"><div><div class="plabel">${esc(f.path)}</div></div><div class="pinput">${input}</div></div>`;
+  }).join('')||'<div class="hint">这个插件没有可改的参数</div>';
+}
+async function savePluginCfg(){
+  const name=$('#pPlug').value; if(!name) return;
+  const d=await api('/api/plugin-config?name='+encodeURIComponent(name));
+  const cfg=d.config||{};
+  document.querySelectorAll('#pform2 [data-path]').forEach(el=>{
+    const path=el.dataset.path, t=el.dataset.t; let v=el.value;
+    if(t==='bool') v = v==='1';
+    else if(t==='num') v = Number(v||0);
+    else if(t==='list') v = v.split(',').map(s=>s.trim()).filter(Boolean);
+    const ks=path.split('.'); let cur=cfg;
+    for(let i=0;i<ks.length-1;i++){ if(typeof cur[ks[i]]!=='object'||cur[ks[i]]===null) cur[ks[i]]={}; cur=cur[ks[i]]; }
+    cur[ks[ks.length-1]]=v;
+  });
+  toast('保存中…');
+  const r=await post('/api/plugin-config?name='+encodeURIComponent(name),{config:cfg});
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+}
+
+/* ---------------- 日志 ---------------- */
+let logTimer=null;
+async function viewLog(){
+  $('#main').innerHTML=`<h2>日志</h2>
+  <div class="row" style="margin-bottom:10px">
+    <select id="lg" style="width:180px" onchange="loadLog()">
+      <option value="astrbot">AstrBot</option><option value="snowluma">SnowLuma</option><option value="napcat">NapCat（旧）</option><option value="watcher">监听器</option>
+    </select>
+    <button onclick="loadLog()">刷新</button>
+    <label style="color:var(--dim);font-size:12px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="auto" style="width:auto" checked> 每 5 秒自动刷新</label>
+  </div>
+  <pre class="log" id="logbox">加载中…</pre>`;
+  loadLog();
+}
+async function loadLog(){
+  clearTimeout(logTimer);
+  try{
+    const d=await api('/api/logs?file='+$('#lg').value+'&lines=250');
+    const box=$('#logbox'); if(!box) return;
+    box.textContent=d.text||'(空)'; box.scrollTop=box.scrollHeight;
+  }catch(e){}
+  if($('#auto')?.checked) logTimer=setTimeout(loadLog,5000);
+}
+
+/* ---------------- 扩展插件（QQ资料 / 链接解析 / 戳一戳） ---------------- */
+async function viewExtras(){
+  $('#main').innerHTML=`<h2>扩展插件 <span class="sub">QQ资料 · 链接解析 · 戳一戳</span></h2>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>QQ 资料</b><button onclick="qpLoad()">刷新</button></div>
+    <div class="hint" style="margin-top:8px">改的是机器人这个 QQ 号自己的昵称、签名、在线状态；改完客户端可能有延迟。</div>
+    <div id="qp_now" class="hint" style="margin-top:8px">读取中…</div>
+    <div class="prow"><div class="plabel">昵称</div><div class="pinput"><input id="qp_nick" placeholder="留空不改"></div></div>
+    <div class="prow"><div class="plabel">签名</div><div class="pinput"><input id="qp_sign" placeholder="留空不改"></div></div>
+    <div class="prow"><div class="plabel">在线状态</div><div class="pinput">
+      <select id="qp_stat"><option value="">不改</option><option value="10">在线</option><option value="30">离开</option><option value="40">隐身</option><option value="50">忙碌</option><option value="60">Q我吧</option><option value="70">请勿打扰</option></select>
+    </div></div>
+    <div class="row" style="margin-top:12px"><button class="primary" onclick="qpSave()">保存修改</button></div>
+    <div class="hint" style="margin-top:10px">开关：让 QQ 昵称跟随人格名 —— 默认关闭（关了才不会覆盖「我不是大肥鱼」）。</div>
+    <div id="qp_conf"></div>
+    <div class="row" style="margin-top:8px"><button onclick="pcSave('astrbot_plugin_qqprofile','qp_conf')">保存插件参数</button></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>链接解析器</b><span class="hint">B站/抖音/快手/小红书/微博/知乎/小黑盒/TikTok/YouTube</span></div>
+    <div class="hint" style="margin-top:8px">群里发链接默认要 @ 她才解析；私聊直接解析。上限与防抖可在这里调。</div>
+    <div id="pr_conf" style="margin-top:8px">读取中…</div>
+    <div class="row" style="margin-top:8px"><button class="primary" onclick="pcSave('astrbot_plugin_parser','pr_conf')">保存</button><button onclick="pcLoad('astrbot_plugin_parser','pr_conf')">刷新</button></div>
+    <div class="hint" style="margin-top:8px">单文件上限默认已调到 50MB，防抖 300 秒。</div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>戳一戳</b><span class="hint">被戳后的反应</span></div>
+    <div class="hint" style="margin-top:8px">反戳 / LLM 一句话 / QQ表情 / 表情包 按权重随机触发。原来的群聊增强插件戳一戳已关掉，不会重复回复。</div>
+    <div id="pk_conf" style="margin-top:8px">读取中…</div>
+    <div class="row" style="margin-top:8px"><button class="primary" onclick="pcSave('astrbot_plugin_pokepro','pk_conf')">保存</button><button onclick="pcLoad('astrbot_plugin_pokepro','pk_conf')">刷新</button></div>
+    <div class="hint" style="margin-top:14px">手动戳人（测试用，只在群里发得出去）：</div>
+    <div class="prow"><div class="plabel">群号</div><div class="pinput"><input id="pk_g" placeholder="留空=私聊戳"></div></div>
+    <div class="prow"><div class="plabel">QQ 号</div><div class="pinput"><input id="pk_u" placeholder="要戳的人"></div></div>
+    <div class="prow"><div class="plabel">次数</div><div class="pinput"><input id="pk_n" type="number" value="1" min="1" max="10"></div></div>
+    <div class="row" style="margin-top:10px"><button onclick="pkSend()">戳一下</button></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>连发消息合并</b><span class="hint">同一个人连发几条时，等说完再整段理解</span></div>
+    <div class="hint" style="margin-top:8px">很多人习惯把一句话拆成好几条发。开启后，她先攒一会儿，把这几条拼成一整段再理解，只回一次——不会逐条回不完整的话。</div>
+    <div id="mm_conf" style="margin-top:8px">读取中…</div>
+    <div class="row" style="margin-top:8px"><button class="primary" onclick="pcSave('astrbot_plugin_msg_merge','mm_conf')">保存</button><button onclick="pcLoad('astrbot_plugin_msg_merge','mm_conf')">刷新</button></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>说话换行处理</b><span class="hint">她一句话里换行时怎么办</span></div>
+    <div class="hint" style="margin-top:8px">对所有回复生效（主动聊天和正常聊天都算）。默认把换行改成逗号，连着说下去；也可以只压成一个空格。</div>
+    <div id="nb_conf" style="margin-top:8px">读取中…</div>
+    <div class="row" style="margin-top:8px"><button class="primary" onclick="pcSave('astrbot_plugin_no_blank_line','nb_conf')">保存</button><button onclick="pcLoad('astrbot_plugin_no_blank_line','nb_conf')">刷新</button></div>
+  </div>`;
+  qpLoad();
+  pcLoad('astrbot_plugin_qqprofile','qp_conf');
+  pcLoad('astrbot_plugin_parser','pr_conf');
+  pcLoad('astrbot_plugin_pokepro','pk_conf');
+  pcLoad('astrbot_plugin_msg_merge','mm_conf');
+  pcLoad('astrbot_plugin_no_blank_line','nb_conf');
+}
+async function qpLoad(){
+  try{
+    const d=await api('/api/qqprofile');
+    $('#qp_now').innerHTML=`当前：<b>${esc(d.nickname||'-')}</b>（${esc(String(d.uin||''))}）${d.signature?'　签名：'+esc(d.signature):''}`;
+    $('#qp_nick').value=d.nickname||'';
+    $('#qp_sign').value=d.signature||'';
+  }catch(e){ $('#qp_now').textContent='读取失败：'+e.message; }
+}
+async function qpSave(){
+  const body={nickname:$('#qp_nick').value.trim(), signature:$('#qp_sign').value.trim(), status:$('#qp_stat').value};
+  toast('保存中…');
+  const r=await post('/api/qqprofile/set',body);
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+  if(r.status==='ok') setTimeout(qpLoad,1200);
+}
+async function pkSend(){
+  const g=$('#pk_g').value.trim(), u=$('#pk_u').value.trim(), n=parseInt($('#pk_n').value||'1',10);
+  if(!u){ toast('填 QQ 号','err'); return; }
+  const r=await post('/api/pokepro/poke',{group_id:g,user_id:u,times:n});
+  toast(r.message||'已发', r.status==='ok'?'ok':'err');
+}
+function pcRender(box, name, cfg){
+  const flat=flatten(cfg||{},'',[],0);
+  box.className='';
+  box.innerHTML=flat.map(f=>{
+    const id='pc_'+name+'_'+f.path.replace(/[^a-zA-Z0-9]/g,'_');
+    let input;
+    if(typeof f.value==='boolean')
+      input=`<select id="${id}" data-path="${f.path}" data-t="bool"><option value="1" ${f.value?'selected':''}>开启</option><option value="0" ${f.value?'':'selected'}>关闭</option></select>`;
+    else if(typeof f.value==='number')
+      input=`<input id="${id}" data-path="${f.path}" data-t="num" type="number" step="any" value="${f.value}">`;
+    else
+      input=`<input id="${id}" data-path="${f.path}" data-t="${f.type==='list'?'list':'str'}" value="${esc(f.value??'')}">`;
+    return `<div class="prow"><div class="plabel">${esc(f.path)}</div><div class="pinput">${input}</div></div>`;
+  }).join('')||'<div class="hint">没有可改的参数</div>';
+}
+async function pcLoad(name, boxId){
+  const box=document.getElementById(boxId); if(!box) return;
+  box.textContent='读取中…'; box.className='hint';
+  try{
+    const d=await api('/api/plugin-config?name='+encodeURIComponent(name));
+    if(d.status!=='ok'){ box.textContent=d.message||'读取失败'; return; }
+    pcRender(box, name, d.config);
+  }catch(e){ box.textContent='读取失败：'+e.message; }
+}
+async function pcSave(name, boxId){
+  const box=document.getElementById(boxId); if(!box) return;
+  const d=await api('/api/plugin-config?name='+encodeURIComponent(name));
+  const cfg=d.config||{};
+  box.querySelectorAll('[data-path]').forEach(el=>{
+    const path=el.dataset.path, t=el.dataset.t; let v=el.value;
+    if(t==='bool') v = v==='1';
+    else if(t==='num') v = Number(v||0);
+    else if(t==='list') v = v.split(',').map(x=>x.trim()).filter(Boolean);
+    const ks=path.split('.'); let cur=cfg;
+    for(let i=0;i<ks.length-1;i++){ if(typeof cur[ks[i]]!=='object'||cur[ks[i]]===null) cur[ks[i]]={}; cur=cur[ks[i]]; }
+    cur[ks[ks.length-1]]=v;
+  });
+  toast('保存中…');
+  const r=await post('/api/plugin-config?name='+encodeURIComponent(name),{config:cfg});
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+}
+
+/* ---------------- 主动聊天 ---------------- */
+async function viewProactive(){
+  $('#main').innerHTML=`<h2>主动聊天 <span class="sub">她想说话的时候，自己来找你</span></h2>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+        <input id="pa_on" type="checkbox" style="width:auto"><b>开启主动聊天</b>
+      </label>
+      <div class="row">
+        <button onclick="paSave()" class="primary">保存</button>
+        <button onclick="paTest(this)">现在试一条</button>
+        <button onclick="paReset()" class="danger">清零今日计数</button>
+      </div>
+    </div>
+    <div class="hint" id="pa_state" style="margin-top:10px">读取中…</div>
+  </div>
+  <div class="card">
+    <b>发送给谁</b>
+    <div class="hint">格式：私聊 <code>napcat:FriendMessage:QQ号</code>，群聊 <code>napcat:GroupMessage:群号</code>。多个用逗号分隔，每轮随机挑一个。</div>
+    <div class="row" style="gap:6px;margin:10px 0">
+      <button onclick="paAdd('napcat:FriendMessage:' + (window.__ownerQq||'123456789'))">+ 私聊自己</button>
+      <button onclick="paAdd('napcat:GroupMessage:766189299')">+ 410part 群</button>
+      <button onclick="paAdd('napcat:GroupMessage:221622322')">+ 大伯。！群</button>
+      <button onclick="paAdd('napcat:GroupMessage:1130351876')">+ 经济建设组</button>
+    </div>
+    <input id="pa_targets" placeholder="napcat:FriendMessage:123456789">
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>频率</b><span class="hint">和「随机发说说」同一套逻辑：随机间隔 + 到点概率</span></div>
+    <div class="grid2">
+      <div><label class="f">间隔下限（分钟）</label><input id="pa_min" type="number" min="1"></div>
+      <div><label class="f">间隔上限（分钟）</label><input id="pa_max" type="number" min="1"></div>
+      <div><label class="f">到点真发的概率（0~1）</label><input id="pa_prob" type="number" min="0" max="1" step="0.05"></div>
+      <div><label class="f">每日最多几条（0=不限）</label><input id="pa_limit" type="number" min="0"></div>
+      <div><label class="f">安静时段·起（整点）</label><input id="pa_qs" type="number" min="0" max="23"></div>
+      <div><label class="f">安静时段·止（整点）</label><input id="pa_qe" type="number" min="0" max="23"></div>
+      <div><label class="f">距上次对话至少 N 分钟才发</label><input id="pa_idle" type="number" min="0"></div>
+      <div><label class="f">参考最近多少条对话</label><input id="pa_ctx" type="number" min="4"></div>
+    </div>
+    <label class="f">额外风格提示（可留空）</label>
+    <textarea id="pa_hint" style="min-height:70px" placeholder="比如：晚上多关心他有没有吃饭；别每次都问「在干嘛」"></textarea>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+        <input id="pa_meme_on" type="checkbox" style="width:auto"><b>发消息时附带表情包</b>
+      </label>
+      <span class="hint">表情包从「表情包」页的图库里随机取</span>
+    </div>
+    <div class="grid2">
+      <div><label class="f">附带表情的概率（0~1）</label><input id="pa_meme_prob" type="number" min="0" max="1" step="0.05"></div>
+      <div><label class="f">取表情的分类（逗号分隔）</label><input id="pa_meme_cats" placeholder="自拍,happy,shy,meow"></div>
+    </div>
+    <div class="row" style="gap:6px;margin-top:8px">
+      <button onclick="paAddCat('自拍')">+ 自拍</button>
+      <button onclick="paAddCat('happy')">+ happy</button>
+      <button onclick="paAddCat('shy')">+ shy</button>
+      <button onclick="paAddCat('meow')">+ meow</button>
+      <button onclick="paAddCat('sad')">+ sad</button>
+      <button onclick="paAddCat('angry')">+ angry</button>
+    </div>
+    <div class="hint" style="margin-top:6px">分类名要和「表情包」页左边列表一致；填了多个就每轮随机挑一个分类，再随机一张。</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>上下文来源</b><span class="hint">她「想说什么」时参考哪段对话</span></div>
+    <div class="grid2">
+      <div>
+        <label class="f">取上下文的方式</label>
+        <select id="pa_src">
+          <option value="conversation_history">会话历史（AstrBot 对话记录，默认）</option>
+          <option value="platform_message_history">平台消息历史（QQ 原始聊天记录）</option>
+          <option value="hybrid">两者混合</option>
+        </select>
+      </div>
+      <div><label class="f">平台历史取多少条</label><input id="pa_ph" type="number" min="4" max="200"></div>
+    </div>
+    <div class="hint" style="margin-top:6px">会话历史只含和她真正对话过的内容；平台消息历史连群里的闲聊也能看到，更“知道大家在聊什么”，但条数越多越费 token。</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="row" style="gap:8px;align-items:center">
+        <b>连发未回复就停</b>
+        <span class="hint">她主动说了几句你一直没回，就不再打扰</span>
+      </div>
+      <button onclick="paResetUnanswered()">清零未回复计数</button>
+    </div>
+    <div class="grid2">
+      <div><label class="f">最多连发几条没人回就暂停（0=不限）</label><input id="pa_maxun" type="number" min="0"></div>
+      <div>
+        <label class="row" style="gap:8px;align-items:center;cursor:pointer;margin-top:22px">
+          <input id="pa_resume" type="checkbox" style="width:auto">重启后沿用上次排的时间
+        </label>
+      </div>
+    </div>
+    <div id="pa_sess" class="hint" style="margin-top:8px">读取中…</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>说话分行怎么处理</b><span class="hint">她一次想说的话里有两句时</span></div>
+    <div class="grid2">
+      <div>
+        <label class="f">发送方式</label>
+        <select id="pa_lm" onchange="paLineModeUI()">
+          <option value="split">拆成两条消息发（更像真人，默认）</option>
+          <option value="punct">用标点连成一句</option>
+          <option value="space">用空格连起来</option>
+        </select>
+      </div>
+      <div>
+        <label class="f">拆条时第二条晚多少秒</label>
+        <input id="pa_lmd" type="number" min="0.2" max="10" step="0.1">
+      </div>
+    </div>
+    <div id="pa_lmp_wrap" style="margin-top:10px">
+      <label class="f">「用标点连成一句」时插的标点</label>
+      <input id="pa_lmp" maxlength="4" style="width:120px">
+    </div>
+    <div class="hint" style="margin-top:6px">拆条时每条单独发出，间隔 0.2~10 秒可调；句子末尾已是标点就自动不再补。</div>
+  </div>
+  <div class="card">
+    <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+      <input id="pa_mem_on" type="checkbox" style="width:auto"><b>主动消息写入长期记忆</b>
+    </label>
+    <div class="hint" style="margin-top:6px">勾上后，主动发出的那句话会被 LivingMemory 记进会话库，之后她「记得自己说过」；不会额外增加每次对话的 token。</div>
+  </div>`;
+  await paLoad();
+}
+async function paLoad(){
+  try{
+    const d=await api('/api/proactive');
+    const c=d.config||{}, live=d.live||{}, st=d.state||{};
+    $('#pa_on').checked=!!c.enabled;
+    $('#pa_targets').value=(c.targets||[]).join(', ');
+    $('#pa_min').value=c.random_min_minutes; $('#pa_max').value=c.random_max_minutes;
+    $('#pa_prob').value=c.probability; $('#pa_limit').value=c.daily_limit;
+    $('#pa_qs').value=c.quiet_start; $('#pa_qe').value=c.quiet_end;
+    $('#pa_idle').value=c.idle_minutes; $('#pa_ctx').value=c.context_messages;
+    $('#pa_hint').value=c.style_hint||'';
+    $('#pa_meme_on').checked=!!c.meme_enable;
+    $('#pa_mem_on').checked=c.memory_write!==false;
+    $('#pa_meme_prob').value=c.meme_probability??0.5;
+    $('#pa_meme_cats').value=(c.meme_categories||[]).join(',');
+    $('#pa_src').value=c.source_mode||'conversation_history';
+    $('#pa_ph').value=c.platform_history_count??30;
+    $('#pa_maxun').value=c.max_unanswered??3;
+    $('#pa_resume').checked=c.resume_schedule!==false;
+    $('#pa_lm').value=c.line_mode||'split';
+    $('#pa_lmd').value=c.split_delay??1.2;
+    $('#pa_lmp').value=c.join_punct||'，';
+    paLineModeUI();
+    const today = st.date===new Date().toISOString().slice(0,10) ? (st.count||0) : 0;
+    let msg = `今日已发 <b>${today}</b>${c.daily_limit>0?' / '+c.daily_limit:'（不限）'} 条`;
+    if(live.last_text) msg += ` · 最近一条：${esc(live.last_text.slice(0,80))}`;
+    if(live.last_result && live.last_result!=='ok') msg += ` · 上次结果：${esc(live.last_result)}`;
+    $('#pa_state').innerHTML = msg;
+  }catch(e){ $('#pa_state').textContent='读取失败：'+e.message; }
+  paLoadSessions();
+}
+function paLineModeUI(){
+  const m=$('#pa_lm'); if(!m) return;
+  const w=$('#pa_lmp_wrap'); if(w) w.style.display = m.value==='punct' ? '' : 'none';
+  const d=$('#pa_lmd'); if(d) d.disabled = m.value!=='split';
+}
+async function paLoadSessions(){  const el=$('#pa_sess'); if(!el) return;
+  try{
+    const d=await api('/api/proactive/sessions');
+    if(d.status==='error'){ el.textContent='读取失败：'+(d.message||''); return; }
+    const rows=(d.sessions||[]).map(s=>{
+      const when=s.last_sent? new Date(s.last_sent*1000).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '还没发过';
+      const cnt=s.max_unanswered>0? `${s.unanswered} / ${s.max_unanswered}` : `${s.unanswered}`;
+      const flag=s.blocked? ' <b style="color:#e0a33e">已暂停（等回复）</b>' : '';
+      return `<div style="margin:4px 0"><code>${esc(s.umo)}</code> · 未回复 <b>${cnt}</b> · 上次 ${when}${flag}</div>`;
+    }).join('');
+    let next='';
+    if(d.next_ts){
+      const t=new Date(d.next_ts*1000);
+      next=`<div style="margin-top:6px">下次约 <b>${t.toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</b></div>`;
+    }
+    el.innerHTML=(rows||'<div>还没有记录（她还没主动发过消息）</div>')+next;
+  }catch(e){ el.textContent='读取失败：'+e.message; }
+}
+async function paResetUnanswered(){
+  try{ const d=await post('/api/proactive/reset-unanswered',{}); toast(d.message||'已清零', d.status==='error'); paLoadSessions(); }
+  catch(e){ toast('失败：'+e.message, true); }
+}
+function paAddCat(v){
+  const el=$('#pa_meme_cats'); const cur=el.value.split(/[,，]/).map(x=>x.trim()).filter(Boolean);
+  if(!cur.includes(v)) cur.push(v);
+  el.value=cur.join(',');
+}
+function paAdd(v){
+  const el=$('#pa_targets'); const cur=el.value.split(/[,，]/).map(x=>x.trim()).filter(Boolean);
+  if(!cur.includes(v)) cur.push(v);
+  el.value=cur.join(', ');
+}
+async function paSave(){
+  const body={
+    enabled: $('#pa_on').checked,
+    targets: $('#pa_targets').value,
+    random_min_minutes: $('#pa_min').value,
+    random_max_minutes: $('#pa_max').value,
+    probability: $('#pa_prob').value,
+    daily_limit: $('#pa_limit').value,
+    quiet_start: $('#pa_qs').value,
+    quiet_end: $('#pa_qe').value,
+    idle_minutes: $('#pa_idle').value,
+    context_messages: $('#pa_ctx').value,
+    style_hint: $('#pa_hint').value,
+    meme_enable: $('#pa_meme_on').checked,
+    meme_probability: $('#pa_meme_prob').value,
+    meme_categories: $('#pa_meme_cats').value,
+    memory_write: $('#pa_mem_on').checked,
+    source_mode: $('#pa_src').value,
+    platform_history_count: $('#pa_ph').value,
+    max_unanswered: $('#pa_maxun').value,
+    resume_schedule: $('#pa_resume').checked,
+    line_mode: $('#pa_lm').value,
+    split_delay: $('#pa_lmd').value,
+    join_punct: $('#pa_lmp').value || '，',
+  };
+  try{
+    const d=await post('/api/proactive', body);
+    toast(d.message||'已保存', d.status==='error');
+    if(d.status!=='error') paLoad();
+  }catch(e){ toast('保存失败：'+e.message, true); }
+}
+async function paTest(btn){
+  btn.disabled=true; btn.textContent='发送中…';
+  try{
+    const d=await post('/api/proactive/test',{});
+    if(d.status==='ok') toast('已发送：'+(d.text||'').slice(0,60));
+    else toast('没发出去：'+(d.message||'未知原因'), true);
+    paLoad();
+  }catch(e){ toast('失败：'+e.message, true); }
+  finally{ btn.disabled=false; btn.textContent='现在试一条'; }
+}
+async function paReset(){
+  try{ const d=await post('/api/proactive/reset-count',{}); toast(d.message||'已清零'); paLoad(); }
+  catch(e){ toast('失败：'+e.message, true); }
+}
+
+/* ---------------- 长期记忆 ---------------- */
+async function viewMemory(){
+  $('#main').innerHTML=`<h2>长期记忆 <span class="sub">LivingMemory · 她会记住以前聊过的事</span></h2>
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div>
+        <b>插件控制面板</b>
+        <div class="hint" style="margin-top:6px">完整的记忆浏览、编辑、图谱、设置都在插件自带面板里（AstrBot 官方插件页）。点下面的按钮直接打开。</div>
+      </div>
+      <a id="lm_open" class="btn primary" href="#" target="_blank" style="text-decoration:none;padding:8px 14px;border-radius:8px">打开插件面板 ↗</a>
+    </div>
+    <div class="hint" style="margin-top:10px">如果提示要登录 AstrBot，用 config.json 里配的 <code>astrbot_user / astrbot_pass</code>。</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>记忆概览</b><button onclick="lmLoad()">刷新</button></div>
+    <div id="lm_stats" class="hint" style="margin-top:10px">读取中…</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>图记忆（知识图谱）</b>
+      <div class="row" style="gap:6px">
+        <button onclick="lmGraph()">刷新</button>
+        <button class="primary" onclick="lmRebuild()">重建图谱</button>
+      </div>
+    </div>
+    <div id="lm_graph" class="hint" style="margin-top:10px">读取中…</div>
+    <div class="hint" style="margin-top:6px">新增记忆会自动进图谱；开关刚打开、或换了 embedding 模型之后，点「重建图谱」把旧记忆回填一遍（约几十秒）。</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>最近记住的事</b>
+      <div class="row" style="gap:6px">
+        <button onclick="lmPage(-1)">上一页</button>
+        <span id="lm_pg" class="hint">1</span>
+        <button onclick="lmPage(1)">下一页</button>
+      </div>
+    </div>
+    <div id="lm_list" class="hint" style="margin-top:10px">读取中…</div>
+  </div>`;
+  try{ const d=await api('/api/livingmemory'); if(d.url) $('#lm_open').href=d.url; }catch(e){}
+  lmPageNo=1; lmLoad(); lmGraph();
+}
+let lmPageNo=1;
+async function lmGraph(){
+  try{
+    const d=await api('/api/livingmemory/graph');
+    const g=d.graph||{};
+    const s=g.summary||{};
+    const lines=[];
+    if(s.graph_memory_enabled===false) lines.push('<b style="color:#e0a33e">图记忆未开启</b>（插件面板 → 设置 → 图记忆 里打开）');
+    lines.push(`节点 <b>${s.graph_node_count??0}</b> · 边 <b>${s.graph_edge_count??0}</b> · 图条目 <b>${s.graph_entry_count??0}</b>`);
+    const nb=s.node_type_breakdown||{}, rb=s.relation_breakdown||{};
+    const nk=Object.keys(nb), rk=Object.keys(rb);
+    if(nk.length) lines.push('节点类型：'+nk.map(k=>esc(k)+' '+nb[k]).join(' · '));
+    if(rk.length) lines.push('关系：'+rk.map(k=>esc(k)+' '+rb[k]).join(' · '));
+    if(d.warning) lines.push(esc(d.warning));
+    $('#lm_graph').innerHTML=lines.join('<br>');
+  }catch(e){ $('#lm_graph').textContent='读取失败：'+e.message; }
+}
+async function lmRebuild(){
+  const box=$('#lm_graph');
+  box.innerHTML='重建中…（记忆多时可能要一两分钟，别关页面）';
+  try{
+    const d=await post('/api/livingmemory/graph/rebuild',{});
+    const r=d.data||d||{};
+    if(d.status==='error'){ box.innerHTML='<b style="color:#e5534b">'+esc(d.message||'重建失败')+'</b>'; return; }
+    await lmGraph();
+    box.innerHTML='<b style="color:#3fb950">已重建：'+ (r.rebuilt??0) +' 条，跳过 '+ (r.skipped??0) +' 条</b><br>'+box.innerHTML;
+  }catch(e){ box.textContent='重建失败：'+e.message; }
+}
+async function lmPage(delta){
+  lmPageNo=Math.max(1, lmPageNo+delta);
+  $('#lm_pg').textContent=String(lmPageNo);
+  try{ const d=await api('/api/livingmemory/memories?page='+lmPageNo+'&page_size=10'); lmRender(d); }
+  catch(e){ $('#lm_list').textContent='读取失败：'+e.message; }
+}
+function lmRender(d){
+  const data=d.data||d||{};
+  const items=data.memories||data.items||data.list||[];
+  if(!Array.isArray(items)||!items.length){ $('#lm_list').innerHTML='<div>暂无记忆</div>'; return; }
+  $('#lm_list').innerHTML=items.map(m=>{
+    const txt=String(m.content||m.summary||m.text||'').slice(0,300);
+    const imp=m.importance!=null? Number(m.importance).toFixed(1):'';
+    const st=m.status||'';
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="color:#c9d1d9">${esc(txt)}</div>
+      <div class="hint" style="margin-top:4px">${m.session_id?'<code>'+esc(String(m.session_id))+'</code> · ':''}${imp?'重要度 '+imp+' · ':''}${st?esc(st):''}</div>
+    </div>`;
+  }).join('');
+}
+async function lmLoad(){
+  try{
+    const d=await api('/api/livingmemory');
+    const s=d.stats||{};
+    const bd=s.status_breakdown||{};
+    const lines=[];
+    lines.push(`共 <b>${s.total_memories??0}</b> 条记忆 · 活跃 ${bd.active??0} · 归档 ${bd.archived??0} · 已删 ${bd.deleted??0}`);
+    if(s.avg_importance!=null) lines.push(`平均重要度 <b>${Number(s.avg_importance).toFixed(2)}</b>`);
+    if(s.sessions) lines.push(`会话数 <b>${Object.keys(s.sessions).length}</b>`);
+    const ix=s.index_maintenance;
+    if(ix&&ix.state&&ix.state!=='ok') lines.push(`<b style="color:#e0a33e">索引：${esc(ix.state)} — ${esc(ix.message||ix.reason||'')}</b>`);
+    if(d.warning) lines.push(esc(d.warning));
+    $('#lm_stats').innerHTML=lines.join('<br>');
+    if(d.url) $('#lm_open').href=d.url;
+  }catch(e){ $('#lm_stats').textContent='读取失败：'+e.message; }
+}
+
+/* ---------------- 掉线监控 ---------------- */
+let monTimer=null;
+function viewMonitor(){
+  $('#main').innerHTML = `
+  <h2>掉线监控 <span class="sub" id="monSub"></span></h2>
+  <div class="card" id="monStatus"></div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b>检查设置</b><button onclick="monSave()">保存</button></div>
+    <div class="grid2" style="margin-top:10px">
+      <div><label class="f">多久检查一次（秒）</label><input id="mon_interval" type="number" min="10" max="3600" step="10">
+        <div class="hint">最小 10 秒，最大 3600 秒。改完立即生效。</div></div>
+      <div><label class="f">掉线时弹 Windows 通知</label>
+        <label class="row" style="gap:8px;align-items:center;margin-top:8px;cursor:pointer"><input id="mon_notify" type="checkbox" style="width:auto">开启气泡提示</label></div>
+    </div>
+    <label class="row" style="gap:8px;align-items:center;margin-top:12px;cursor:pointer"><input id="mon_on" type="checkbox" style="width:auto">开启自动检查</label>
+    <div class="row" style="gap:10px;margin-top:12px"><button onclick="monCheck()">立即检查一次</button><button onclick="monQR()" class="ghost">看登录二维码</button></div>
+  </div>
+  <div class="card" id="alCard">
+    <div class="row" style="justify-content:space-between"><b>自动登录 <span class="sub" id="alSub"></span></b><button onclick="alSave()">保存</button></div>
+    <div class="hint">发现 QQ 掉线时，自动按顺序：起 SnowLuma → 起机器人 QQ → 注入 → 替它点“登录” → 起 AstrBot。QQ 掉线后通常 1 分钟内自己爬回来，不用手点。</div>
+    <div class="grid2" style="margin-top:10px">
+      <div><label class="f">重试间隔（秒）</label><input id="al_retry" type="number" min="20" max="3600" step="10">
+        <div class="hint">没登上去就每隔这么久再试一次。推荐 60~120。</div></div>
+      <div><label class="f">登录不上时自动刷新二维码</label>
+        <label class="row" style="gap:8px;align-items:center;margin-top:8px;cursor:pointer"><input id="al_qr" type="checkbox" style="width:auto">刷新（方便手机扫）</label></div>
+    </div>
+    <label class="row" style="gap:8px;align-items:center;margin-top:12px;cursor:pointer"><input id="al_on" type="checkbox" style="width:auto">开启自动登录</label>
+    <div class="row" style="gap:10px;margin-top:12px"><button onclick="alRun()">立即尝试登录</button></div>
+    <div class="hint" id="alHint" style="margin-top:8px"></div>
+  </div>
+  <div class="card" id="monQr"></div>`;
+  monLoad();
+  clearInterval(monTimer); monTimer=setInterval(monRefresh, 15000);
+}
+async function monLoad(){
+  try{
+    const d=await api('/api/monitor');
+    $('#mon_interval').value=d.interval_seconds;
+    $('#mon_notify').checked=!!d.notify;
+    $('#mon_on').checked=!!d.enabled;
+    monRender(d);
+    alLoad();
+  }catch(e){ toast('读取失败：'+e.message, true); }
+}
+async function monSave(){
+  const body={ enabled:$('#mon_on').checked, notify:$('#mon_notify').checked,
+               interval_seconds:parseInt($('#mon_interval').value||'120',10) };
+  const r=await post('/api/monitor',body);
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+  monRefresh();
+}
+async function monCheck(){
+  const r=await post('/api/monitor/check',{});
+  monRender(r); toast(r.qq_ok?'SnowLuma 正常':'SnowLuma 没起来', r.qq_ok?'ok':'err');
+}
+async function alLoad(){
+  try{
+    const d=await api('/api/autologin');
+    $('#al_on').checked=!!d.config.enabled;
+    $('#al_qr').checked=!!d.config.qr_refresh;
+    $('#al_retry').value=d.config.retry_seconds;
+    $('#alSub').textContent = d.config.enabled ? `每 ${d.config.retry_seconds} 秒重试一次` : '已关闭';
+    const parts=[];
+    if(d.tries) parts.push(`已尝试 ${d.tries} 次`);
+    if(d.last_try) parts.push('上次尝试 '+new Date(d.last_try*1000).toLocaleTimeString());
+    if(d.last_result) parts.push('结果：'+d.last_result);
+    $('#alHint').textContent = parts.join(' · ') || '还没跑过';
+  }catch(e){}
+}
+async function alSave(){
+  const body={ enabled:$('#al_on').checked, qr_refresh:$('#al_qr').checked,
+               retry_seconds:parseInt($('#al_retry').value||'90',10) };
+  const r=await post('/api/autologin',body);
+  toast(r.message||'已保存', r.status==='ok'?'ok':'err');
+  alLoad();
+}
+async function alRun(){
+  toast('正在尝试登录，可能要 20~60 秒…');
+  const r=await post('/api/autologin/run',{});
+  toast(r.message||'', r.status==='ok'?'ok':'err');
+  alLoad(); setTimeout(refreshStatus, 800);
+}
+function monQR(){
+  location.hash='#home';
+  setTimeout(()=>{ loadQR(1); }, 300);
+}
+async function monRefresh(){
+  if(location.hash.replace('#','')!=='monitor') return;
+  try{ monRender(await api('/api/monitor')); }catch(e){}
+}
+function monRender(d){
+  const okDot = b => `<span class="dot ${b?'':'bad'}"></span>`;
+  const downMin = d.down_since ? Math.max(0, Math.round((d.now-d.down_since)/60)) : 0;
+  const last = d.last_check ? new Date(d.last_check*1000).toLocaleTimeString() : '—';
+  $('#monSub') && ($('#monSub').textContent = d.enabled ? `每 ${d.interval_seconds} 秒检查` : '已关闭自动检查');
+  const st = $('#monStatus');
+  if(st){
+    st.innerHTML = `
+      <div class="row" style="justify-content:space-between"><b>当前状态</b><span class="dim">上次检查 ${last}</span></div>
+      <div style="margin-top:10px;line-height:2">
+        <div>${okDot(d.qq_ok)} QQ 在线（SnowLuma OneBot） ${d.qq_ok?'正常':'<b style="color:#e35">没起来</b>'}</div>
+        <div>${okDot(d.astrbot_ok)} AstrBot 服务 ${d.astrbot_ok?'正常':'<b style="color:#e35">异常</b>'}</div>
+        <div>${okDot(d.sl_up)} SnowLuma 服务 ${d.sl_up?'正常':'没起来'}</div>
+      </div>
+      ${!d.qq_ok && d.down_since ? `<div class="hint" style="margin-top:8px;color:#e9a">已经掉线约 ${downMin} 分钟</div>` : ''}`;
+  }
+  const qr = $('#monQr');
+  if(qr){
+    if(!d.qq_ok){
+      qr.innerHTML = `<b>QQ 掉线了，扫下面这张码就能登回去</b>
+        <div class="hint" style="margin-top:6px">二维码是从机器人 QQ 登录窗口截的${d.qr_age>=0?'，'+d.qr_age+' 秒前更新':''}。手机 QQ → 扫一扫。扫完这里会自动变绿。</div>
+        <div style="margin-top:12px" class="qrbox"><img class="qr" src="/api/monitor/qr?_=${d.qr_mtime||0}" onerror="this.parentNode.innerHTML='<span class=dim>暂无二维码，点上面「看登录二维码」或回概览点重新登录</span>'"></div>`;
+    } else {
+      qr.innerHTML = `<b>一切正常</b><div class="hint" style="margin-top:6px">掉线时会自动把二维码显示在这里，同时弹 Windows 通知。</div>`;
+    }
+  }
+  const bar = $('#alertBar');
+  if(bar){
+    if(d.qq_ok===false){
+      bar.style.display='flex';
+      bar.innerHTML = `<b>QQ 掉线</b><span>SnowLuma 的 OneBot 或 QQ 进程没起来，点这里看二维码扫码登录</span>`;
+    } else { bar.style.display='none'; }
+  }
+}
+/* 全局定时：只要面板开着就每 20 秒看一眼，掉线顶部横幅会自己出现 */
+setInterval(async()=>{
+  try{ const d=await api('/api/monitor'); if(!$('#monStatus')) monRender(d); }catch(e){}
+}, 20000);
+
+/* ---------------- 路由 ---------------- */
+
+async function voSaveMaster(btn){
+  if(btn) btn.disabled = true;
+  try{
+    const r = await api('/api/voice',{method:'POST',body:JSON.stringify({master: $('#vo_master').checked})});
+    toast(r.message||r.status, r.status==='ok'?'good':'bad');
+    if(r.status==='ok') viewVoice();
+  }catch(e){ toast('失败：'+e,'bad'); }
+  if(btn) btn.disabled = false;
+}
+async function viewVoice(){
+  const d = await api('/api/voice');
+  if(d.status!=='ok') return toast(d.message||'读取失败', 'bad');
+  const c = d.config||{}, live = d.live||{};
+  const voices = d.voices||[];
+  const opts = voices.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  const svcUp = !!(d.fy&&d.fy.up) || !!(d.clone&&d.clone.up);
+  $('#main').innerHTML=`<h2>语音回复 <span class="sub">让她用声音说话（肥鱼声库 / CosyVoice2 / GPT-SoVITS / Edge 四选一）</span></h2>
+  <div class="card" style="border-color:${c.master===false?'#7a3b3b':'#2f6b46'}">
+    <div class="row" style="justify-content:space-between">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+        <input id="vo_master" type="checkbox" style="width:auto" ${c.master!==false?'checked':''}><b>语音总开关</b>
+      </label>
+      <div class="row">
+        <button onclick="voSaveMaster(this)" class="primary">保存总开关</button>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:10px">关掉后：不再转语音、不回语音消息，<b>也不会启动任何 TTS 模型</b>（不占显存）。下面的细节设置保留，重新打开即恢复。</div>
+    <div class="hint" style="margin-top:6px">合成服务当前：${svcUp?'<b style="color:#7fd6a0">在运行（占显存）</b>':'空闲（未加载模型）'}</div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+        <input id="vo_on" type="checkbox" style="width:auto" ${c.enabled?'checked':''}><b>开启语音回复</b>
+      </label>
+      <div class="row">
+        <button onclick="voSave(this)" class="primary">保存</button>
+        <button onclick="voTest(this)">试听</button>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:10px">${live.error?('插件未就绪：'+live.error):('最近一次合成：'+(live.last_result||'暂无'))}</div>
+  </div>
+  <div class="card">
+    <b>什么时候发语音</b>
+    <div class="grid2" style="margin-top:10px">
+      <div><label class="f">触发方式</label>
+        <select id="vo_mode">
+          <option value="on_demand" ${c.mode==='on_demand'?'selected':''}>按需：只有我说「发语音」之类才转</option>
+          <option value="probability" ${c.mode==='probability'?'selected':''}>按概率：随机有一部分回复带语音</option>
+          <option value="always" ${c.mode==='always'?'selected':''}>始终：每条回复都带语音</option>
+        </select>
+      </div>
+      <div><label class="f">按概率时的比例（0~1）</label><input id="vo_prob" type="number" min="0" max="1" step="0.05" value="${c.probability}"></div>
+    </div>
+    <label class="f">触发词（逗号分隔，说了就转语音）</label>
+    <input id="vo_trig" value="${(c.trigger_words||[]).join(',')}">
+    <label class="f">限定生效会话（留空=全部；如 napcat:FriendMessage:123456789）</label>
+    <input id="vo_targets" value="${(c.targets||[]).join(',')}" placeholder="留空表示私聊群聊都生效">
+  </div>
+  <div class="card">
+    <b>合成引擎</b>
+    <div style="margin-bottom:14px;border:1px solid #2a2a35;border-radius:10px;padding:12px">
+      <b>肥鱼声库（CosyVoice3 + 肥鱼微调音色）</b>
+      <div class="hint">视频里那套：模型是 CosyVoice3 0.5B，叠了肥鱼自己训的音色包。两种语气可选，本机 GPU 跑，一句约 4~10 秒。</div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label class="f">语气（音色包）</label>
+          <select id="vo_fy_style">
+            <option value="cute">cute（软萌）</option>
+            <option value="gentle">gentle（温柔）</option>
+          </select>
+        </div>
+        <div><label class="f">语速（0.5~2.0）</label><input id="vo_fy_speed" type="number" min="0.5" max="2" step="0.05" value="${(c.fy_speed||1).toFixed(2)}"></div>
+      </div>
+      <label class="f">服务地址</label>
+      <input id="vo_fy_url" value="${c.fy_url||'http://127.0.0.1:8911'}">
+      <div style="margin-top:12px;border:1px solid #2a3a4a;border-radius:10px;padding:12px;background:rgba(40,120,200,.06)">
+        <b>按需加载（省显存）</b>
+        <div class="hint">开启后：平时不占显存（0 占用），第一次要用时才拉起模型（等 15~40 秒），之后闲置到设定时间自动卸载。关掉就是常驻（开机即占约 3.5 GB）。</div>
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <label class="f"><input type="checkbox" id="vo_fy_lazy" ${c.fy_lazy!==false?'checked':''} style="margin-right:6px">启用按需加载（推荐）</label>
+          </div>
+          <div><label class="f">闲置多少分钟自动卸载（0 = 不卸载）</label><input id="vo_fy_idle" type="number" min="0" max="240" step="1" value="${(c.fy_idle_minutes??10)}"></div>
+        </div>
+        <div class="hint" id="vo_fy_idle_state" style="margin-top:6px">—</div>
+      </div>
+      <div class="hint" id="vo_fy_state" style="margin-top:8px">检查肥鱼声音服务…</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="voFy('start',this)">▶ 启动肥鱼声音</button>
+        <button class="btn" onclick="voFy('restart',this)">↻ 重启</button>
+        <button class="btn" onclick="voFy('stop',this)">■ 停止</button>
+        <span class="hint" id="vo_fy_msg" style="align-self:center"></span>
+      </div>
+    </div>
+    <div class="hint">「本地克隆」= 用你在视频里给的那段声音做参考，仿照她的音色说话（本机 GPU 跑，一句约 10~20 秒）。</div>
+    <div class="grid2" style="margin-top:10px">
+      <div><label class="f">用哪个引擎</label>
+        <select id="vo_engine">
+          <option value="fy">肥鱼声库（推荐，CosyVoice3 + 肥鱼音色）</option>
+          <option value="edge">微软 Edge TTS（在线，即时）</option>
+          <option value="cv2">CosyVoice2 本地克隆（仿照参考音色）</option>
+          <option value="gsv">GPT-SoVITS（本地，最像，慢一点）</option>
+        </select>
+      </div>
+      <div><label class="f">参考音色</label>
+        <select id="vo_ref"><option value="default">（参考音色已清空）</option></select>
+      </div>
+      <div><label class="f">克隆语速（0.5~2.0）</label><input id="vo_speed" type="number" min="0.5" max="2" step="0.05" value="${(c.cv2_speed||1).toFixed(2)}"></div>
+      <div><label class="f">CosyVoice2 服务地址</label><input id="vo_cv2_url" value="${c.cv2_url||'http://127.0.0.1:8910'}"></div>
+    </div>
+    <div class="hint" id="vo_clone_state" style="margin-top:10px">检查克隆服务…</div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="voCv2('start',this)">▶ 启动 CosyVoice2</button>
+      <button class="btn" onclick="voCv2('restart',this)">↻ 重启</button>
+      <button class="btn" onclick="voCv2('stop',this)">■ 停止</button>
+      <span class="hint" id="vo_cv2_msg" style="align-self:center"></span>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid #2a2a35;padding-top:12px">
+      <b>GPT-SoVITS 本地推理（备选引擎）</b>
+      <div class="hint">和 CosyVoice2 二选一，同时开会爆显存。要换用这个：先停 CosyVoice2，再点启动。</div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label class="f">服务地址</label><input id="vo_gsv_url" value="${c.gsv_url||'http://127.0.0.1:9880'}"></div>
+        <div><label class="f">语速（0.5~2.0）</label><input id="vo_gsv_speed" type="number" min="0.5" max="2" step="0.05" value="${(c.gsv_speed||1).toFixed(2)}"></div>
+      </div>
+      <label class="f">参考音频路径</label>
+      <input id="vo_gsv_ref" value="${c.gsv_ref||''}">
+      <label class="f">参考音频对应的文字（必须完全一致）</label>
+      <textarea id="vo_gsv_prompt" style="min-height:52px">${c.gsv_prompt||''}</textarea>
+      <div class="hint" id="vo_gsv_state" style="margin-top:8px">检查 GPT-SoVITS 服务…</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="voGsv('start',this)">▶ 启动 GPT-SoVITS</button>
+        <button class="btn" onclick="voGsv('restart',this)">↻ 重启</button>
+        <button class="btn" onclick="voGsv('stop',this)">■ 停止</button>
+        <span class="hint" id="vo_gsv_msg" style="align-self:center"></span>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <b>音色</b>
+    <div class="grid2" style="margin-top:10px">
+      <div><label class="f">音色</label>
+        <select id="vo_voice">${opts}</select>
+      </div>
+      <div><label class="f">语速（如 +10% / -10%）</label><input id="vo_rate" value="${c.rate||'+0%'}"></div>
+      <div><label class="f">音调（如 +20Hz）</label><input id="vo_pitch" value="${c.pitch||'+0Hz'}"></div>
+      <div><label class="f">音量（如 +0%）</label><input id="vo_vol" value="${c.volume||'+0%'}"></div>
+      <div><label class="f">最多念多少字（超出截断）</label><input id="vo_maxchars" type="number" min="2" value="${c.max_chars}"></div>
+    </div>
+    <label class="row" style="gap:8px;align-items:center;cursor:pointer;margin-top:10px">
+      <input id="vo_keep" type="checkbox" style="width:auto" ${c.keep_text?'checked':''}><span>语音之外也保留文字（关掉=只发语音）</span>
+    </label>
+    <label class="row" style="gap:8px;align-items:center;cursor:pointer;margin-top:6px">
+      <input id="vo_async" type="checkbox" style="width:auto" ${c.async_voice!==false?'checked':''}><span>语音后台合成、不挡后面的消息（推荐开）</span>
+    </label>
+    <div class="hint" style="margin-top:6px">开着的时候，她先把文字（如果保留文字）发出来，语音合成好了再补一条；关掉就退回「等合成完一起发」，冷启动时会把后续消息堵住 40~60 秒。</div>
+    <div class="row" style="gap:8px;align-items:center;margin-top:10px">
+      <span>语音临时文件保留</span>
+      <input id="vo_tmpdays" type="number" step="0.5" min="0" max="90" style="width:90px" value="${c.tmp_keep_days!=null?c.tmp_keep_days:2}">
+      <span>天（0=不自动清理；每次合成前顺手删更旧的，默认 2 天）</span>
+    </div>
+    <div class="hint" style="margin-top:8px">改完音色保存后立即生效，不用重启。先去试听一句听听效果。</div>
+  </div>
+  <div class="card">
+    <b>试听</b>
+    <div class="hint">点「试听」只验证合成；要在 QQ 里听，直接对她说「发语音」。</div>
+    <textarea id="vo_test_text" style="min-height:60px">主人，我在这里呀，今天过得怎么样？</textarea>
+    <div class="hint" id="vo_state" style="margin-top:8px"></div>
+  </div>`;
+  $('#vo_engine').value = c.engine || 'fy';
+  $('#vo_ref').value = c.cv2_ref || 'default';
+  $('#vo_cv2_url').value = c.cv2_url || 'http://127.0.0.1:8910';
+  const fy = d.fy || {};
+  const fst = $('#vo_fy_state');
+  const fsel = $('#vo_fy_style');
+  if (fsel) fsel.value = c.fy_style || 'cute';
+  const lazyOn = c.fy_lazy !== false;
+  if (fst) fst.textContent = fy.up
+    ? (fy.loaded ? ('✅ 肥鱼声音服务在线（8911）· 语气：' + ((fy.styles||[]).join('、') || 'cute/gentle')) : '⏳ 肥鱼声音服务在线，模型加载中…')
+    : (lazyOn ? '⚪ 模型未常驻（按需加载已开启：下一条语音会自动拉起，等 15~40 秒）' : '⚪ 肥鱼声音服务未启动（常驻模式：用 fy 引擎前先点「启动肥鱼声音」）');
+  const idleEl = $('#vo_fy_idle_state');
+  if (idleEl) {
+    if (!fy.up) idleEl.textContent = lazyOn ? '当前不占显存（服务未运行）' : '服务未运行';
+    else if (!fy.loaded) idleEl.textContent = '模型加载中，请稍候…';
+    else if (fy.idle_seconds != null) idleEl.textContent = '模型已加载 · 已闲置 ' + Math.round(fy.idle_seconds/60) + ' 分钟' + (c.fy_idle_minutes>0 ? ('，超过 ' + c.fy_idle_minutes + ' 分钟自动卸载') : '（未设置自动卸载）');
+    else idleEl.textContent = '模型已加载';
+  }
+  const gs = d.gsv || {};
+  const gst = $('#vo_gsv_state');
+  if (gst) gst.textContent = gs.up ? '✅ GPT-SoVITS 服务在线（9880）· 当前可选' : '⚪ GPT-SoVITS 未启动（备选引擎，不影响现在的语音；要用就在下面点「启动 GPT-SoVITS」）';
+  const cl = d.clone || {};
+  const st = $('#vo_clone_state');
+  if (cl.up) {
+    st.textContent = cl.loaded ? ('✅ CosyVoice2 在线，已加载模型；参考音色：' + ((cl.refs||[]).map(r=>r.name).join('、') || '无')) : '⏳ CosyVoice2 在线，模型加载中…（约 40~60 秒）';
+  } else {
+    st.textContent = '⚪ CosyVoice2 未运行（备选引擎，不影响现在的语音；要用就点「启动 CosyVoice2」）';
+  }
+  if ((cl.refs||[]).length) {
+    const rsel = $('#vo_ref');
+    rsel.innerHTML = (cl.refs||[]).map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+    rsel.value = c.cv2_ref || (cl.refs[0]||{}).name || 'default';
+  }
+  const sel = $('#vo_voice'); if(sel) sel.value = c.voice || 'zh-CN-XiaoxiaoNeural';
+  if(sel && sel.value !== (c.voice||'')) sel.value = 'zh-CN-XiaoxiaoNeural';
+}
+async function voCv2(act, btn){
+  const msg = $('#vo_cv2_msg');
+  btn.disabled = true;
+  msg.textContent = act === 'stop' ? '正在停止…' : '正在启动，模型加载约 40~60 秒…';
+  try{
+    const d = await api('/api/voice/cv2/' + act, {method:'POST', body:{}});
+    msg.textContent = d.message || '已下发';
+  }catch(e){ msg.textContent = '失败：' + e; }
+  btn.disabled = false;
+  // 起服务时模型加载要几十秒，轮询刷新状态直到就绪
+  let n = 0;
+  const timer = setInterval(async ()=>{
+    n++;
+    try{
+      const d = await api('/api/voice');
+      const cl = d.clone || {};
+      const st = $('#vo_clone_state');
+      if (cl.up && cl.loaded) { st.textContent = '✅ CosyVoice2 在线，已加载模型'; msg.textContent = '已就绪'; clearInterval(timer); }
+      else if (cl.up) { st.textContent = '⏳ CosyVoice2 在线，模型加载中…'; }
+      else if (act === 'stop') { st.textContent = '⏹ CosyVoice2 已停止'; clearInterval(timer); }
+    }catch(e){}
+    if (n > 24) clearInterval(timer);
+  }, 5000);
+}
+async function voFy(act, btn){
+  const msg = $('#vo_fy_msg');
+  btn.disabled = true;
+  msg.textContent = act === 'stop' ? '正在停止…' : '正在启动，加载模型约 15~40 秒…';
+  try{
+    const d = await api('/api/voice/fy/' + act, {method:'POST', body:{}});
+    msg.textContent = d.message || '已下发';
+    if (d.status === 'error') { btn.disabled = false; return; }
+  }catch(e){ msg.textContent = '失败：' + e; btn.disabled = false; return; }
+  btn.disabled = false;
+  let n = 0;
+  const timer = setInterval(async ()=>{
+    n++;
+    try{
+      const d = await api('/api/voice');
+      const fy = d.fy || {};
+      const st = $('#vo_fy_state');
+      if (fy.up && fy.loaded) { st.textContent = '✅ 肥鱼声音服务在线（8911）'; msg.textContent = '已就绪'; clearInterval(timer); }
+      else if (fy.up) { st.textContent = '⏳ 肥鱼声音服务在线，模型加载中…'; }
+      else if (act === 'stop') { st.textContent = '⏹ 肥鱼声音服务已停止'; clearInterval(timer); }
+    }catch(e){}
+    if (n > 24) clearInterval(timer);
+  }, 4000);
+}
+async function voGsv(act, btn){
+  const msg = $('#vo_gsv_msg');
+  btn.disabled = true;
+  msg.textContent = act === 'stop' ? '正在停止…' : '正在启动，加载模型约 30~90 秒…';
+  try{
+    const d = await api('/api/voice/gsv/' + act, {method:'POST', body:{}});
+    msg.textContent = d.message || '已下发';
+    if (d.status === 'error') { btn.disabled = false; return; }
+  }catch(e){ msg.textContent = '失败：' + e; btn.disabled = false; return; }
+  btn.disabled = false;
+  let n = 0;
+  const timer = setInterval(async ()=>{
+    n++;
+    try{
+      const d = await api('/api/voice');
+      const gs = d.gsv || {};
+      const gst = $('#vo_gsv_state');
+      if (gs.up) { gst.textContent = '✅ GPT-SoVITS 服务在线（9880）· 当前可选'; msg.textContent = '已就绪'; clearInterval(timer); }
+      else if (act === 'stop') { gst.textContent = '⚪ GPT-SoVITS 已停止'; clearInterval(timer); }
+    }catch(e){}
+    if (n > 36) clearInterval(timer);
+  }, 5000);
+}
+async function voRecheck(){
+  try{
+    const d = await api('/api/voice');
+    const cl = d.clone || {};
+    const st = $('#vo_clone_state');
+    if (cl.up) st.textContent = cl.loaded ? ('✅ CosyVoice2 在线，已加载模型；参考音色：' + ((cl.refs||[]).map(r=>r.name).join('、') || '无')) : '⏳ CosyVoice2 在线，模型加载中…（约 40~60 秒）';
+    else if (!cl.loaded) st.textContent = '❌ CosyVoice2 未运行（' + (cl.error || '连不上 8910') + '），可点「启动 CosyVoice2」。';
+    if (!cl.up) return;
+  }catch(e){}
+}
+async function voSave(btn){
+  const body = {
+    enabled: $('#vo_on').checked,
+    keep_text: $('#vo_keep').checked,
+    async_voice: $('#vo_async').checked,
+    tmp_keep_days: parseFloat($('#vo_tmpdays').value || '2'),
+    mode: $('#vo_mode').value,
+    probability: parseFloat($('#vo_prob').value||'0'),
+    max_chars: parseInt($('#vo_maxchars').value||'120',10),
+    trigger_words: $('#vo_trig').value,
+    targets: $('#vo_targets').value,
+    voice: $('#vo_voice').value,
+    rate: $('#vo_rate').value,
+    pitch: $('#vo_pitch').value,
+    volume: $('#vo_vol').value,
+    engine: $('#vo_engine').value,
+    fy_url: $('#vo_fy_url').value,
+    fy_style: $('#vo_fy_style').value,
+    fy_speed: parseFloat($('#vo_fy_speed').value||'1'),
+    fy_lazy: $('#vo_fy_lazy').checked,
+    fy_idle_minutes: parseInt($('#vo_fy_idle').value||'10',10),
+    cv2_ref: $('#vo_ref').value,
+    cv2_url: $('#vo_cv2_url').value,
+    cv2_speed: parseFloat($('#vo_speed').value||'1'),
+    gsv_url: $('#vo_gsv_url').value,
+    gsv_ref: $('#vo_gsv_ref').value,
+    gsv_prompt: $('#vo_gsv_prompt').value,
+    gsv_speed: parseFloat($('#vo_gsv_speed').value||'1'),
+  };
+  if(btn) btn.disabled = true;
+  const r = await api('/api/voice',{method:'POST',body:JSON.stringify(body)});
+  if(btn) btn.disabled = false;
+  toast(r.message||r.status, r.status==='ok'?'good':'bad');
+}
+async function voTest(btn){
+  const t = $('#vo_test_text').value || '';
+  $('#vo_state').textContent = '合成中…（第一次要等 5~15 秒）';
+  if(btn) btn.disabled = true;
+  const r = await api('/api/voice/test',{method:'POST',body:JSON.stringify({text:t})});
+  if(btn) btn.disabled = false;
+  const dd = r.data || r;
+  $('#vo_state').textContent = dd.status==='ok' ? ('合成成功：'+dd.file) : ('失败：'+(dd.message||dd));
+}
+
+async function viewSing(){
+  $('#main').innerHTML = `<h2>唱歌 <span class="sub">她用肥鱼的声音翻唱一首歌（制作约 1~3 分钟）</span></h2>
+  <div class="card" id="sg_master_card">
+    <div class="row" style="justify-content:space-between">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+        <input id="sg_master" type="checkbox" style="width:auto"><b>唱歌总开关</b>
+      </label>
+      <button onclick="sgSaveMaster(this)" class="primary">保存总开关</button>
+    </div>
+    <div class="hint" style="margin-top:10px">关掉后：聊天里点歌完全不响应，也不做任何 RVC 推理（<b>不占显存</b>，不会下载/分离/换声）。下面的细节设置保留。</div>
+  </div>
+  <div class="card">
+    <b>点歌功能开关</b>
+    <div class="hint">控制她在聊天里被点歌（「唱首《稻香》」）时要不要真的唱。关掉后点歌消息完全不理会。</div>
+    <div class="row" style="margin-top:10px;gap:16px;flex-wrap:wrap">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="sg_on" style="width:auto"> 允许点歌</label>
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="sg_group" style="width:auto"> 群里可以点</label>
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="sg_private" style="width:auto"> 私聊可以点</label>
+    </div>
+    <div class="row" style="margin-top:12px;gap:8px;align-items:center">
+      <label class="f" style="margin:0">冷却（分钟，同一会话两次点歌的最短间隔，0=不限）</label>
+      <input id="sg_cool" type="number" min="0" max="1440" style="width:110px">
+      <button onclick="sgSaveCfg(this)">保存开关</button>
+      <span class="hint" id="sg_cfgmsg"></span>
+    </div>
+  </div>
+  <div class="card">
+    <b>选歌</b>
+    <div class="hint">填歌名搜一下，或者直接填网易云歌曲 ID。</div>
+    <div class="row" style="margin-top:10px;gap:8px">
+      <input id="sg_q" placeholder="歌名，例如：起风了 / 大鱼" style="flex:1" onkeydown="if(event.key==='Enter')sgSearch()">
+      <button onclick="sgSearch()">搜索</button>
+    </div>
+    <div id="sg_hits" class="hint" style="margin-top:8px"></div>
+    <div class="grid2" style="margin-top:12px">
+      <div><label class="f">网易云歌曲 ID（可选，填了就优先用它）</label><input id="sg_id" placeholder="例如 1330348068"></div>
+      <div><label class="f">制作人声用的 RVC 模型</label><input id="sg_model" readonly></div>
+    </div>
+    <div class="row" style="margin-top:14px;gap:8px">
+      <button class="primary" onclick="sgStart(this)">开始制作</button>
+      <button onclick="sgStop(this)">中止</button>
+      <span class="hint" id="sg_msg"></span>
+    </div>
+  </div>
+  <div class="card">
+    <b>进度</b>
+    <div class="hint" id="sg_stage">还没开始</div>
+    <pre id="sg_log" class="logbox" style="max-height:260px;margin-top:10px"></pre>
+  </div>
+  <div class="card">
+    <b>人声 / 伴奏 音量</b>
+    <div class="hint" style="margin-top:4px">自动平衡之上再叠加的增减，0 = 自动（人声按实测差值补回、伴奏再收 3 dB）。改完点「重新混音」几秒出试听，不用重做整首。</div>
+    <div style="margin-top:14px">
+      <label class="f">人声 <span id="mx_vlbl" class="hint">+0 dB</span></label>
+      <input id="mx_vocal" type="range" min="-12" max="12" step="0.5" value="0" style="width:100%" oninput="sgMixLabel()">
+    </div>
+    <div style="margin-top:10px">
+      <label class="f">伴奏 <span id="mx_ilbl" class="hint">+0 dB</span></label>
+      <input id="mx_inst" type="range" min="-12" max="12" step="0.5" value="0" style="width:100%" oninput="sgMixLabel()">
+    </div>
+    <div class="row" style="margin-top:14px;gap:8px">
+      <button class="primary" onclick="sgRemix(this)">重新混音</button>
+      <button onclick="sgMixReset(this)">恢复自动</button>
+      <span class="hint" id="mx_msg"></span>
+    </div>
+    <audio id="mx_audio" controls style="width:100%;margin-top:10px;display:none"></audio>
+  </div>
+  <div class="card">
+    <b>自动清理</b>
+    <div class="hint" style="margin-top:4px">到期自动删掉过期的翻唱成品和语音临时文件。只删产出目录里的文件，不会动程序本体。</div>
+    <div id="cl_stats" class="hint" style="margin-top:10px"></div>
+    <div class="row" style="margin-top:12px;gap:16px;flex-wrap:wrap;align-items:center">
+      <label class="row" style="gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="cl_on" style="width:auto"> 开启自动清理</label>
+      <label class="row" style="gap:8px;align-items:center"><span class="hint">保留</span>
+        <input id="cl_days" type="number" min="1" max="365" style="width:90px"><span class="hint">天</span></label>
+      <label class="row" style="gap:8px;align-items:center"><span class="hint">每</span>
+        <input id="cl_iv" type="number" min="1" max="168" style="width:80px"><span class="hint">小时检查一次</span></label>
+    </div>
+    <div class="row" style="margin-top:12px;gap:8px">
+      <button onclick="clSave(this)">保存</button>
+      <button onclick="clRun(this)">立即清理</button>
+      <span class="hint" id="cl_msg"></span>
+    </div>
+  </div>
+  <div class="card" id="sg_result" style="display:none">
+    <b>成品</b>
+    <div class="hint" id="sg_info"></div>
+    <audio id="sg_audio" controls style="width:100%;margin-top:10px"></audio>
+  </div>`;
+
+  sgLoadCfg();
+  sgLoadMix();
+  clLoad();
+  sgPoll();
+}
+async function clLoad(){
+  try{
+    const d = await api('/api/clean');
+    const c = d.config||{}, st = d.state||{};
+    if($('#cl_on')) $('#cl_on').checked = !!c.enabled;
+    if($('#cl_days')) $('#cl_days').value = c.days||7;
+    if($('#cl_iv')) $('#cl_iv').value = c.interval_hours||6;
+    let t = '';
+    (d.targets||[]).forEach(x=>{
+      t += `${x.label}：${x.files} 个 / ${x.mb} MB，其中 ${x.expired} 个已过期<br>`;
+    });
+    if(st.last_result) t += `上次清理：${st.last_result}`;
+    if($('#cl_stats')) $('#cl_stats').innerHTML = t || '暂无数据';
+  }catch(e){}
+}
+async function clSave(btn){
+  if(btn) btn.disabled = true;
+  try{
+    const r = await api('/api/clean',{method:'POST',body:JSON.stringify({
+      enabled: $('#cl_on').checked,
+      days: parseInt($('#cl_days').value||'7',10),
+      interval_hours: parseInt($('#cl_iv').value||'6',10),
+    })});
+    if($('#cl_msg')) $('#cl_msg').textContent = r.message||r.status;
+    toast(r.message||r.status, r.status==='ok'?'good':'bad');
+    clLoad();
+  }catch(e){ toast('失败：'+e,'bad'); }
+  if(btn) btn.disabled = false;
+}
+async function clRun(btn){
+  if(btn) btn.disabled = true;
+  if($('#cl_msg')) $('#cl_msg').textContent = '清理中…';
+  try{
+    const r = await api('/api/clean/run',{method:'POST',body:'{}'});
+    if($('#cl_msg')) $('#cl_msg').textContent = r.message||r.status;
+    toast(r.message||r.status, r.status==='ok'?'good':'bad');
+    clLoad();
+  }catch(e){ toast('失败：'+e,'bad'); }
+  if(btn) btn.disabled = false;
+}
+
+function sgMixLabel(){
+  const v = parseFloat($('#mx_vocal').value)||0;
+  const i = parseFloat($('#mx_inst').value)||0;
+  const f = x => (x>0?'+':'') + x.toFixed(1) + ' dB';
+  if($('#mx_vlbl')) $('#mx_vlbl').textContent = f(v);
+  if($('#mx_ilbl')) $('#mx_ilbl').textContent = f(i);
+}
+async function sgLoadMix(){
+  try{
+    const d = await api('/api/sing/mix');
+    const c = d.config||{};
+    if($('#mx_vocal')) $('#mx_vocal').value = c.vocal_db||0;
+    if($('#mx_inst')) $('#mx_inst').value = c.inst_db||0;
+    sgMixLabel();
+    if(d.preview){
+      const a = $('#mx_audio');
+      if(a){ a.style.display=''; a.src = '/api/sing/mixaudio?v=' + Date.now(); }
+    }
+  }catch(e){}
+}
+async function sgRemix(btn){
+  if(btn) btn.disabled = true;
+  const m = $('#mx_msg');
+  if(m) m.textContent = '混音中…';
+  try{
+    const r = await api('/api/sing/mix',{method:'POST',body:JSON.stringify({
+      vocal_db: parseFloat($('#mx_vocal').value)||0,
+      inst_db: parseFloat($('#mx_inst').value)||0,
+    })});
+    const r2 = await api('/api/sing/remix',{method:'POST',body:'{}'});
+    if(m) m.textContent = r2.message||r2.status;
+    toast(r2.message||r2.status, r2.status==='ok'?'good':'bad');
+    if(r2.status==='ok'){
+      const a = $('#mx_audio');
+      if(a){ a.style.display=''; a.src = '/api/sing/mixaudio?v=' + Date.now(); a.load(); a.play().catch(()=>{}); }
+    }
+  }catch(e){ if(m) m.textContent = '失败：'+e; toast('失败：'+e,'bad'); }
+  if(btn) btn.disabled = false;
+}
+async function sgMixReset(btn){
+  if($('#mx_vocal')) $('#mx_vocal').value = 0;
+  if($('#mx_inst')) $('#mx_inst').value = 0;
+  sgMixLabel();
+  await sgRemix(btn);
+}
+async function sgSaveMaster(btn){
+  if(btn) btn.disabled = true;
+  try{
+    const r = await api('/api/voice',{method:'POST',body:JSON.stringify({sing_master: $('#sg_master').checked})});
+    toast(r.message||r.status, r.status==='ok'?'good':'bad');
+    if(r.status==='ok'){
+      const card = $('#sg_master_card');
+      if(card) card.style.borderColor = ($('#sg_master').checked ? '#2f6b46' : '#7a3b3b');
+    }
+  }catch(e){ toast('失败：'+e,'bad'); }
+  if(btn) btn.disabled = false;
+}
+async function sgLoadCfg(){
+  try{
+    const d = await api('/api/voice');
+    const c = d.config||{};
+    if($('#sg_master')) $('#sg_master').checked = c.sing_master !== false;
+    if($('#sg_master_card')) $('#sg_master_card').style.borderColor = (c.sing_master===false?'#7a3b3b':'#2f6b46');
+    if($('#sg_on')) $('#sg_on').checked = c.sing_enable !== false;
+    if($('#sg_group')) $('#sg_group').checked = c.sing_in_group !== false;
+    if($('#sg_private')) $('#sg_private').checked = c.sing_in_private !== false;
+    if($('#sg_cool')) $('#sg_cool').value = c.sing_cooldown||0;
+  }catch(e){}
+}
+async function sgSaveCfg(btn){
+  if(btn) btn.disabled = true;
+  try{
+    const r = await api('/api/voice',{method:'POST',body:JSON.stringify({
+      sing_enable: $('#sg_on').checked,
+      sing_in_group: $('#sg_group').checked,
+      sing_in_private: $('#sg_private').checked,
+      sing_cooldown: parseInt($('#sg_cool').value||'0',10),
+    })});
+    if($('#sg_cfgmsg')) $('#sg_cfgmsg').textContent = r.message||r.status;
+    toast(r.message||r.status, r.status==='ok'?'good':'bad');
+  }catch(e){ toast('保存失败：'+e,'bad'); }
+  if(btn) btn.disabled = false;
+}
+let sgTimer = null;
+async function sgPoll(){
+  clearTimeout(sgTimer);
+  let d=null;
+  try{ d = await api('/api/sing/status'); }catch(e){}
+  const st = (d&&d.state)||{};
+  const stage = $('#sg_stage'), log = $('#sg_log');
+  if(stage){
+    if(st.running) stage.textContent = (st.stage||'进行中') + ' …' + (st.query?('（'+st.query+'）'):'');
+    else if(st.stage==='完成') stage.textContent = '✅ 完成';
+    else if(st.stage==='失败') stage.textContent = '❌ 失败：' + (st.error||'');
+    else stage.textContent = '还没开始';
+  }
+  if(log) log.textContent = st.log||'';
+  const res = $('#sg_result');
+  if(res){
+    if(st.out && st.size){
+      res.style.display='';
+      const au = $('#sg_audio');
+      const url = '/api/sing/audio?v=' + (st.mtime||0);
+      if(au.getAttribute('src')!==url){ au.setAttribute('src', url); }
+      const kb = Math.round((st.size||0)/1024);
+      const sec = st.started&&st.finished?(st.finished-st.started):0;
+      $('#sg_info').textContent = st.out.split(/[\\/]/).pop() + ' · ' + kb + ' KB · 耗时 ' + sec + ' 秒';
+    } else {
+      res.style.display='none';
+    }
+  }
+  if(st.running) sgTimer = setTimeout(sgPoll, 3000);
+}
+async function sgSearch(btn){
+  const q = $('#sg_q').value.trim();
+  if(!q) return toast('先填歌名','bad');
+  const box = $('#sg_hits');
+  box.textContent = '搜索中…';
+  try{
+    const d = await api('/api/sing/search?q=' + encodeURIComponent(q));
+    const list = d.list||[];
+    if(!list.length){ box.textContent = '没搜到，换个关键词或直接填歌曲 ID'; return; }
+    box.innerHTML = list.map(it=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)">
+      <a href="javascript:void(0)" onclick="sgPick('${it.id}','${esc(it.song||'')}')">${esc(it.song||'')}</a>
+      <span class="hint"> — ${esc(it.singer||'')}</span></div>`).join('');
+  }catch(e){ box.textContent = '搜索失败：'+e; }
+}
+function sgPick(id, song){
+  $('#sg_id').value = id;
+  if(song) $('#sg_q').value = song;
+  toast('已选中：'+song,'good');
+}
+async function sgStart(btn){
+  const query = $('#sg_q').value.trim();
+  const song_id = $('#sg_id').value.trim();
+  if(!query && !song_id) return toast('填歌名或歌曲 ID','bad');
+  btn.disabled = true;
+  try{
+    const d = await post('/api/sing/start', {query, song_id});
+    toast(d.message||d.status, d.status==='ok'?'good':'bad');
+  }catch(e){ toast('启动失败：'+e,'bad'); }
+  btn.disabled = false;
+  sgPoll();
+}
+async function sgStop(btn){
+  await post('/api/sing/stop', {});
+  toast('已请求中止','');
+  sgPoll();
+}
+const views={home:viewHome,meme:viewMeme,persona:viewPersona,model:viewModel,groups:viewGroups,proactive:viewProactive,memory:viewMemory,tokens:viewTokens,params:viewParams,qzone:viewQzone,monitor:viewMonitor,voice:viewVoice,sing:viewSing,extras:viewExtras,log:viewLog};
+function go(t){
+  clearTimeout(statusTimer); clearTimeout(logTimer); clearInterval(monTimer);
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.t===t));
+  location.hash=t;
+  views[t]();
+}
+$('#nav').onclick=e=>{ const a=e.target.closest('a'); if(a) go(a.dataset.t); };
+go(location.hash.replace('#','')||'home');
+</script>
+</body>
+</html>

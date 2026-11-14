@@ -1,0 +1,28 @@
+# 自己的配置与运行时数据，绝不提交
+config.json
+auth.json
+qq_login.json
+sl_token.txt
+astr_tok.txt
+cookie.txt
+ck.txt
+
+# 运行时生成的目录与文件
+backups/
+data/
+web/*.bak_*
+*.bak_*
+__pycache__/
+*.py[cod]
+
+# 日志
+*.log
+out.log
+err.log
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store

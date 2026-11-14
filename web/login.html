@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>登录 · QQBOT PANEL</title>
+<style>
+:root{--bg:#0f1216;--card:#171c22;--line:#242c35;--fg:#e6edf3;--dim:#8b98a5;--acc:#4ea1ff;--ok:#3fb950;--err:#f85149}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#1b2532 0%,var(--bg) 55%);color:var(--fg);font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+.box{width:360px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 24px 20px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.logo{font:700 20px/1 ui-monospace,Consolas,monospace;letter-spacing:2px;color:var(--acc);margin-bottom:4px}
+.sub{color:var(--dim);font-size:12px;margin-bottom:22px}
+label.f{display:block;color:var(--dim);font-size:12px;margin:14px 0 6px}
+input[type=text],input[type=password]{width:100%;background:#0d1116;border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg);font-size:14px;outline:none}
+input[type=text]:focus,input[type=password]:focus{border-color:var(--acc)}
+.opt{display:flex;align-items:center;gap:8px;margin-top:14px;color:var(--dim);font-size:13px;cursor:pointer;user-select:none}
+.opt input{width:auto;accent-color:var(--acc)}
+button{width:100%;margin-top:20px;background:var(--acc);color:#04121f;font-weight:700;border:0;border-radius:8px;padding:11px;font-size:15px;cursor:pointer}
+button:disabled{opacity:.6;cursor:default}
+.msg{margin-top:12px;font-size:12px;min-height:16px}
+.msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
+.tip{margin-top:16px;color:#5f6b78;font-size:11px;text-align:center}
+</style></head>
+<body>
+<form class="box" id="f" autocomplete="on">
+  <div class="logo">QQBOT PANEL</div>
+  <div class="sub">小鲸鱼控制台 · 请先登录</div>
+  <label class="f">账号</label>
+  <input id="u" type="text" name="username" placeholder="账号（config.json 里的 panel_user）" autocomplete="username">
+  <label class="f">密码</label>
+  <input id="p" type="password" name="password" placeholder="首次启动的密码见服务端控制台/日志" autocomplete="current-password">
+  <label class="opt"><input id="remember" type="checkbox" checked>记住账号密码</label>
+  <label class="opt"><input id="auto" type="checkbox">下次自动登录</label>
+  <button id="btn" type="submit">登 录</button>
+  <div class="msg" id="msg"></div>
+  <div class="tip">忘记密码？删掉面板目录下的 auth.json 后重启，会重新生成一个随机密码并打印到控制台/日志。</div>
+</form>
+<script>
+const $=s=>document.querySelector(s);
+const msg=(t,c)=>{const m=$('#msg');m.textContent=t;m.className='msg '+(c||'')};
+function load(){try{
+  const u=localStorage.getItem('qp_u'), p=localStorage.getItem('qp_p');
+  if(u) $('#u').value=u;
+  if(p) $('#p').value=p;
+  $('#remember').checked = localStorage.getItem('qp_remember')!=='0' && !!(u&&p);
+  const auto = localStorage.getItem('qp_auto')==='1';
+  $('#auto').checked = auto;
+  if(auto && u && p){ doLogin(u,p,true); }
+}catch(e){}}
+async function doLogin(u,p,silent){
+  $('#btn').disabled=true;
+  if(!silent) msg('登录中…');
+  try{
+    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u,password:p,remember:$('#remember').checked})});
+    const d=await r.json();
+    if(d.status==='ok'){
+      if($('#remember').checked){
+        localStorage.setItem('qp_u',u); localStorage.setItem('qp_p',p); localStorage.setItem('qp_remember','1');
+        localStorage.setItem('qp_auto',$('#auto').checked?'1':'0');
+      } else {
+        ['qp_u','qp_p','qp_remember','qp_auto'].forEach(k=>localStorage.removeItem(k));
+      }
+      msg('登录成功，正在进入…','ok');
+      location.replace('/');
+      return;
+    }
+    msg(d.message||'账号或密码不对','err');
+  }catch(e){ msg('连不上面板服务：'+e.message,'err'); }
+  $('#btn').disabled=false;
+}
+$('#f').addEventListener('submit',e=>{e.preventDefault(); doLogin($('#u').value.trim(),$('#p').value,false)});
+$('#remember').addEventListener('change',()=>{ if(!$('#remember').checked) $('#auto').checked=false; });
+load();
+</script></body></html>
