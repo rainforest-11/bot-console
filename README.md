@@ -70,7 +70,7 @@
 └───────┬──────┘
         │  fetch /api/*（qp_session cookie 鉴权）
 ┌───────▼──────────────┐
-│   server.py           │  ThreadingHTTPServer + 路由表（104 个 /api/*）
+│   server.py           │  ThreadingHTTPServer + 路由表（91 个 /api/* 接口）
 │   仅标准库             │  会话 / 鉴权 / 进程管理 / 日志 tail
 └───┬────────┬───────┬─┘
     │HTTP    │HTTP   │WebSocket
@@ -274,7 +274,7 @@ python server.py
 
 ## 页面与接口
 
-前端每个页面都只调 `/api/*`，104 个接口按前缀分组：
+前端每个页面都只调 `/api/*`，共 91 个接口路径（同一个路径往往有 GET/POST 两种方法），按前缀分组：
 
 | 前缀 | 用途 |
 | --- | --- |
